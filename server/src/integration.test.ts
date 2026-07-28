@@ -71,7 +71,7 @@ describe("Integration 17.1: full checkout flow against MockGateway", () => {
     const token = checkout.body.token as string;
     expect(typeof token).toBe("string");
     expect(token.length).toBeGreaterThan(0); // non-empty token issued
-    expect(checkout.body.status).toBe("Order Received"); // Req 5.4
+    expect(checkout.body.status).toBe("Craving Funded"); // Req 5.4
     expect(checkout.body.total).toBe(expectedTotal); // Req 5.1
     expect(checkout.body.coinsEarned).toBe(coinsForOrder(expectedTotal)); // Req 9.1
     expect(checkout.body.spinAvailable).toBe(true); // Req 13.1
@@ -83,7 +83,7 @@ describe("Integration 17.1: full checkout flow against MockGateway", () => {
     expect(order.token).toBe(token);
     expect(order.stallId).toBe(STALL.id);
     expect(order.paid).toBe(true);
-    expect(order.status).toBe("Order Received");
+    expect(order.status).toBe("Craving Funded");
     expect(order.total).toBe(expectedTotal);
 
     // 3) Coin crediting is reflected in the wallet: floor(0.10 * total) (Req 9.1).
@@ -139,19 +139,19 @@ describe("Integration 17.2: server reflects changes immediately (well within the
 
     // Before advancing, the tracked status is the initial one.
     const before = await request(app).get(`/api/orders/${token}`);
-    expect(before.body.status).toBe("Order Received");
+    expect(before.body.status).toBe("Craving Funded");
 
-    // Advance once; the immediately-following GET already shows "Preparing".
+    // Advance once; the immediately-following GET already shows "Flavor Processing".
     const advance1 = await request(app).post(`/api/orders/${token}/advance`);
     expect(advance1.status).toBe(200);
     const afterFirst = await request(app).get(`/api/orders/${token}`);
-    expect(afterFirst.body.status).toBe("Preparing");
+    expect(afterFirst.body.status).toBe("Flavor Processing");
 
-    // Advance again; the next GET immediately shows "Ready for Pickup".
+    // Advance again; the next GET immediately shows "Taste Ready for Pickup".
     const advance2 = await request(app).post(`/api/orders/${token}/advance`);
     expect(advance2.status).toBe(200);
     const afterSecond = await request(app).get(`/api/orders/${token}`);
-    expect(afterSecond.body.status).toBe("Ready for Pickup");
+    expect(afterSecond.body.status).toBe("Taste Ready for Pickup");
   });
 
   it("metrics refresh: GET /api/metrics immediately reflects Total Orders Today and Revenue after a paid checkout (Req 7.5)", async () => {

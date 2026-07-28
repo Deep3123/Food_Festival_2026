@@ -1,67 +1,28 @@
 /**
- * Marketplace — the food-item browsing page (Req 2.1-2.5, 4.1, 4.3).
+ * Marketplace — the food-item browsing page.
  *
- * Loads a stall's menu from the API using the `:stallId` route param (the QR
- * stall context, Req 4.1). When no stall param is present a default demo stall
- * is used so the plain `/marketplace` route still shows a menu. Each item is
- * rendered as a `FoodItemCard`; clicking Add to Cart adds one unit via the
- * shared cart context (Req 2.4).
- *
- * Unknown stalls surface an error view: `getMenu` throws an `ApiClientError`
- * with code `STALL_NOT_FOUND`, which is caught and rendered as a "stall not
- * found" message (Req 4.3).
+ * Displays ALL food items across all stalls so users can browse the full
+ * catalogue. The menu is polled periodically so that stock changes made by the
+ * admin (e.g. marking items out of stock) are reflected without requiring a
+ * page refresh.
  */
 
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useCallback } from "react";
+import { Link } from "react-router-dom";
 import type { FoodItem } from "../../../types/index.js";
-import { ApiClientError, getMenu } from "../api/client.js";
+import { getAllItems } from "../api/client.js";
 import { ROUTES } from "../routes.js";
 import { useCart } from "../cart/CartContext.js";
+import { usePolling } from "../hooks/usePolling.js";
 import { FoodItemCard } from "./FoodItemCard.js";
 
-/** Default stall used when the route carries no `:stallId` (plain /marketplace). */
-export const DEFAULT_STALL_ID = "stall-tandoori";
-
-type LoadState =
-  | { status: "loading" }
-  | { status: "loaded"; items: FoodItem[] }
-  | { status: "not-found"; stallId: string }
-  | { status: "error"; message: string };
-
 export function Marketplace(): JSX.Element {
-  const params = useParams<{ stallId?: string }>();
-  const stallId = params.stallId ?? DEFAULT_STALL_ID;
-  const { addItem, cart } = useCart();
+  const { addItem, cart, increment, decrement, removeItem } = useCart();
 
-  const [state, setState] = useState<LoadState>({ status: "loading" });
+  const fetchMenu = useCallback(() => getAllItems(), []);
+  const { data: items, error, loading } = usePolling<FoodItem[]>(fetchMenu);
 
-  useEffect(() => {
-    let active = true;
-    setState({ status: "loading" });
-
-    getMenu(stallId)
-      .then((items) => {
-        if (!active) return;
-        setState({ status: "loaded", items });
-      })
-      .catch((err: unknown) => {
-        if (!active) return;
-        if (err instanceof ApiClientError && err.code === "STALL_NOT_FOUND") {
-          setState({ status: "not-found", stallId });
-          return;
-        }
-        const message =
-          err instanceof Error ? err.message : "Failed to load the menu.";
-        setState({ status: "error", message });
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [stallId]);
-
-  if (state.status === "loading") {
+  if (loading && !items && !error) {
     return (
       <main className="marketplace">
         <p role="status">Loading menu…</p>
@@ -69,30 +30,18 @@ export function Marketplace(): JSX.Element {
     );
   }
 
-  if (state.status === "not-found") {
+  if (error && !items) {
     return (
       <main className="marketplace">
         <div role="alert" className="marketplace-error">
-          <h1>Stall not found</h1>
-          <p>
-            We couldn&apos;t find a stall for &ldquo;{state.stallId}&rdquo;.
-            Please rescan the stall&apos;s QR code and try again.
-          </p>
+          <h1>Something went wrong</h1>
+          <p>We couldn&apos;t load the menu. Retrying…</p>
         </div>
       </main>
     );
   }
 
-  if (state.status === "error") {
-    return (
-      <main className="marketplace">
-        <div role="alert" className="marketplace-error">
-          <h1>Something went wrong</h1>
-          <p>{state.message}</p>
-        </div>
-      </main>
-    );
-  }
+  const menuItems = items ?? [];
 
   return (
     <main className="marketplace">
@@ -103,15 +52,34 @@ export function Marketplace(): JSX.Element {
         </Link>
       </header>
 
-      {state.items.length === 0 ? (
-        <p>No items are available at this stall right now.</p>
+      <div className="reward-info-banner">
+        <h3>🎁 Earn Rewards on Every Order!</h3>
+        <ul className="reward-info-list">
+          <li><strong>Earn:</strong> Get 10% reward points on every order total</li>
+          <li><strong>Use:</strong> Redeem points at checkout — 2 points = ₹1 off</li>
+          <li><strong>Example:</strong> Order ₹100 → earn 10 points → use them for ₹5 off next time</li>
+        </ul>
+      </div>
+
+      {menuItems.length === 0 ? (
+        <p>No items are available right now.</p>
       ) : (
         <ul className="food-card-list">
-          {state.items.map((item) => (
-            <li key={item.id}>
-              <FoodItemCard item={item} onAddToCart={addItem} />
-            </li>
-          ))}
+          {menuItems.map((item) => {
+            const line = cart.find((l) => l.itemId === item.id);
+            return (
+              <li key={item.id}>
+                <FoodItemCard
+                  item={item}
+                  onAddToCart={addItem}
+                  cartQuantity={line?.quantity ?? 0}
+                  onIncrement={increment}
+                  onDecrement={decrement}
+                  onRemove={removeItem}
+                />
+              </li>
+            );
+          })}
         </ul>
       )}
     </main>

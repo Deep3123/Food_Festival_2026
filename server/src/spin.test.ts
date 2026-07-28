@@ -141,7 +141,7 @@ describe("Property 29: Exactly one spin per paid order", () => {
                 (sum, it) => sum + it.unitPrice * it.quantity,
                 0
               ),
-              status: "Order Received",
+              status: "Craving Funded",
               paid: false,
               paymentMethod: "other",
               customerId,

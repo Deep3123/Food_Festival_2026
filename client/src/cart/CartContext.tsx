@@ -42,6 +42,8 @@ export interface CartContextValue {
   decrement: (itemId: string) => void;
   /** Remove a line from the cart entirely. */
   removeItem: (itemId: string) => void;
+  /** Clear all items from the cart. */
+  clearCart: () => void;
   /** The item id whose last quantity change was clamped, or null. */
   clampedItemId: string | null;
   /** Clear the clamp notice. */
@@ -107,6 +109,11 @@ export function CartProvider({ children }: { children: ReactNode }): JSX.Element
     setClampedItemId((id) => (id === itemId ? null : id));
   }, []);
 
+  const clearCart = useCallback(() => {
+    setCart(emptyCart);
+    setClampedItemId(null);
+  }, []);
+
   const dismissClampNotice = useCallback(() => setClampedItemId(null), []);
 
   const value = useMemo<CartContextValue>(
@@ -118,6 +125,7 @@ export function CartProvider({ children }: { children: ReactNode }): JSX.Element
       increment,
       decrement,
       removeItem,
+      clearCart,
       clampedItemId,
       dismissClampNotice,
     }),
@@ -128,6 +136,7 @@ export function CartProvider({ children }: { children: ReactNode }): JSX.Element
       increment,
       decrement,
       removeItem,
+      clearCart,
       clampedItemId,
       dismissClampNotice,
     ]

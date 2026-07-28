@@ -133,9 +133,9 @@ describe("Property 11: Failed payment creates no order and retains the cart", ()
   });
 });
 
-// Feature: bytebites, Property 12: New orders start in "Order Received"
-describe('Property 12: New orders start in "Order Received"', () => {
-  it("sets the initial status of a paid order to Order Received", async () => {
+// Feature: bytebites, Property 12: New orders start in "Craving Funded"
+describe('Property 12: New orders start in "Craving Funded"', () => {
+  it("sets the initial status of a paid order to Craving Funded", async () => {
     await fc.assert(
       fc.asyncProperty(
         safeIdArb,
@@ -149,9 +149,9 @@ describe('Property 12: New orders start in "Order Received"', () => {
             .send({ stallId, customerId, items });
 
           expect(res.status).toBe(201);
-          expect(res.body.status).toBe("Order Received");
+          expect(res.body.status).toBe("Craving Funded");
           const stored = store.getOrder(res.body.token as string);
-          expect(stored?.status).toBe("Order Received");
+          expect(stored?.status).toBe("Craving Funded");
         }
       ),
       { numRuns: 100 }
@@ -179,7 +179,7 @@ describe("Property 14: Displayed status matches stored status", () => {
 
           // Apply a sequence of advances, tracking the expected status locally
           // via the same domain transition the server uses.
-          let expected: OrderStatus = "Order Received";
+          let expected: OrderStatus = "Craving Funded";
           for (let i = 0; i < advanceCount; i += 1) {
             const adv = await request(app).post(
               `/api/orders/${token}/advance`
@@ -215,7 +215,7 @@ describe("GET /api/orders/:token — unknown token", () => {
     });
   });
 
-  it("advancing at Ready for Pickup is a no-op", async () => {
+  it("advancing at Happiness Disbursed is a no-op", async () => {
     const stallId = "stall-x";
     const store = new Store({
       stalls: [{ id: stallId, name: "X", qrSlug: "x" }],
@@ -232,11 +232,12 @@ describe("GET /api/orders/:token — unknown token", () => {
     const token = checkout.body.token as string;
 
     // Advance to the terminal state and then once more.
-    await request(app).post(`/api/orders/${token}/advance`); // Preparing
-    await request(app).post(`/api/orders/${token}/advance`); // Ready for Pickup
+    await request(app).post(`/api/orders/${token}/advance`); // Flavor Processing
+    await request(app).post(`/api/orders/${token}/advance`); // Taste Ready for Pickup
+    await request(app).post(`/api/orders/${token}/advance`); // Happiness Disbursed
     const terminal = await request(app).post(`/api/orders/${token}/advance`);
 
     expect(terminal.status).toBe(200);
-    expect(terminal.body.status).toBe("Ready for Pickup");
+    expect(terminal.body.status).toBe("Happiness Disbursed");
   });
 });

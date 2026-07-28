@@ -8,7 +8,7 @@
 export type Spice = "mild" | "medium" | "hot";
 export type Flavor = "sweet" | "savory";
 export type Portion = "light" | "regular" | "hearty";
-export type OrderStatus = "Order Received" | "Preparing" | "Ready for Pickup";
+export type OrderStatus = "Craving Funded" | "Flavor Processing" | "Taste Ready for Pickup" | "Happiness Disbursed";
 export type SpinReward = "5% discount" | "free drink" | "double FoodCoins" | "lucky draw ticket";
 export type PaymentMethod = "UPI" | "other";
 export interface FoodItem {

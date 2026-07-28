@@ -111,6 +111,14 @@ export function createApp(deps: AppDependencies): Express {
     }
   );
 
+  // --- GET /api/menu ------------------------------------------------------
+  //
+  // Returns ALL food items across ALL stalls. Used by the marketplace to
+  // display the full catalogue to users.
+  app.get("/api/menu", (_req: Request, res: Response): void => {
+    res.status(200).json(store.getFoodItems());
+  });
+
   // --- POST /api/customers ------------------------------------------------
   //
   // Register or upsert a customer keyed by their mobile number. The mobile
@@ -169,7 +177,7 @@ export function createApp(deps: AppDependencies): Express {
   // server-side from the cart's unit prices and quantities via the pricing
   // domain (never trusting a client-supplied total). An empty cart is rejected
   // with 400 BEFORE any gateway call (see Error Handling). On a successful
-  // payment the server creates an order (status "Order Received", associated
+  // payment the server creates an order (status "Craving Funded", associated
   // with the originating stall), issues a unique token, credits FoodCoins to
   // the customer's wallet, and marks the single spin available. It then sends
   // an order confirmation to the customer's mobile via the notification
@@ -189,10 +197,15 @@ export function createApp(deps: AppDependencies): Express {
         stallId?: unknown;
         customerId?: unknown;
         items?: unknown;
+        redeemPoints?: unknown;
       };
 
       const items = Array.isArray(body.items) ? (body.items as CartItem[]) : [];
       const stallId = typeof body.stallId === "string" ? body.stallId : "";
+      const redeemPoints =
+        typeof body.redeemPoints === "number" && body.redeemPoints > 0
+          ? Math.floor(body.redeemPoints)
+          : 0;
       // The customer identity is their mobile number, normalized to a canonical
       // form so wallet/referral/order association all key off the same value.
       // A checkout for an unregistered mobile still works — a minimal customer
@@ -215,8 +228,47 @@ export function createApp(deps: AppDependencies): Express {
         return;
       }
 
+      // Validate stock: reject if any item is out of stock or quantity exceeds
+      // available stock. This prevents orders for items the admin has marked
+      // out of stock, even if the user's client hasn't refreshed yet.
+      for (const cartItem of items) {
+        const foodItem = store.getFoodItem(cartItem.itemId);
+        if (!foodItem) {
+          const errBody: ApiError = {
+            error: `Item "${cartItem.name}" is no longer available`,
+            code: "ITEM_UNAVAILABLE",
+          };
+          res.status(400).json(errBody);
+          return;
+        }
+        if (foodItem.availableQuantity < cartItem.quantity) {
+          const errBody: ApiError = {
+            error:
+              foodItem.availableQuantity === 0
+                ? `"${cartItem.name}" is out of stock`
+                : `"${cartItem.name}" only has ${foodItem.availableQuantity} available (you requested ${cartItem.quantity})`,
+            code: "INSUFFICIENT_STOCK",
+          };
+          res.status(400).json(errBody);
+          return;
+        }
+      }
+
       // Recompute the total server-side; the client total is never trusted.
-      const total = orderTotal(items);
+      const subtotal = orderTotal(items);
+
+      // Apply reward points discount if requested (2 points = ₹1).
+      let discount = 0;
+      let pointsUsed = 0;
+      if (redeemPoints > 0) {
+        const wallet = store.getWallet(customerId);
+        const usable = Math.min(redeemPoints, wallet.foodCoins);
+        discount = usable * 0.50; // 2 points = ₹1
+        // Don't discount more than the order total.
+        discount = Math.min(discount, subtotal);
+        pointsUsed = Math.ceil(discount * 2); // exact points consumed
+      }
+      const total = Math.max(0, subtotal - discount);
 
       const orderContext: OrderContext = { stallId, customerId, items };
       const payment = await paymentGateway.initiatePayment(total, orderContext);
@@ -231,8 +283,15 @@ export function createApp(deps: AppDependencies): Express {
         return;
       }
 
+      // Deduct redeemed reward points from the wallet.
+      if (pointsUsed > 0) {
+        const wallet = store.getWallet(customerId);
+        wallet.foodCoins = Math.max(0, wallet.foodCoins - pointsUsed);
+        store.saveWallet(wallet);
+      }
+
       // Success: issue a unique token against the store's existing tokens,
-      // create the order in "Order Received" state associated with the stall,
+      // create the order in "Craving Funded" state associated with the stall,
       // credit FoodCoins, and mark the spin available (Req 5.2, 5.4, 9.1).
       const token = issueToken(store.getOrderTokens());
       const order: Order = {
@@ -240,7 +299,7 @@ export function createApp(deps: AppDependencies): Express {
         stallId,
         items,
         total,
-        status: "Order Received",
+        status: "Craving Funded",
         paid: true,
         paymentMethod: "UPI",
         gatewayRef: payment.gatewayRef,
@@ -249,6 +308,18 @@ export function createApp(deps: AppDependencies): Express {
         spinUsed: false,
       };
       store.saveOrder(order);
+
+      // Deduct ordered quantities from stock so availability updates in
+      // real-time for other users browsing the marketplace.
+      for (const cartItem of items) {
+        const currentItem = store.getFoodItem(cartItem.itemId);
+        if (currentItem) {
+          store.setAvailableQuantity(
+            cartItem.itemId,
+            currentItem.availableQuantity - cartItem.quantity
+          );
+        }
+      }
 
       const coinsEarned = coinsForOrder(total);
       const wallet = store.getWallet(customerId);
@@ -289,6 +360,7 @@ export function createApp(deps: AppDependencies): Express {
         coinsEarned,
         spinAvailable: !order.spinUsed,
         total,
+        discount,
         notified,
       });
     }
@@ -318,7 +390,7 @@ export function createApp(deps: AppDependencies): Express {
   // --- POST /api/orders/:token/advance ------------------------------------
   //
   // Advances the order to the next status via the order-status domain.
-  // Advancing an order already at "Ready for Pickup" is a no-op (it stays).
+  // Advancing an order already at "Happiness Disbursed" is a no-op (it stays).
   // Unknown tokens yield a 404.
   //
   // Validates: Requirements 6.2, 6.3
@@ -351,6 +423,23 @@ export function createApp(deps: AppDependencies): Express {
   // authentication and authorization (e.g. a seller session/JWT scoped to the
   // seller's own stall(s)) before exposing customer order data. Do not ship
   // these open to the internet as-is.
+
+  // --- GET /api/customers/:mobile/orders ----------------------------------
+  //
+  // Returns all orders for a given customer (identified by mobile number),
+  // most-recent first by createdAt. Returns an empty array if the customer has
+  // no orders.
+  app.get(
+    "/api/customers/:mobile/orders",
+    (req: Request, res: Response): void => {
+      const { mobile } = req.params;
+      const orders = store
+        .getOrders()
+        .filter((o) => o.customerId === mobile)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      res.status(200).json(orders);
+    }
+  );
 
   // --- GET /api/admin/orders ----------------------------------------------
   //
@@ -388,6 +477,53 @@ export function createApp(deps: AppDependencies): Express {
     }
     res.status(200).json(order);
   });
+
+  // --- GET /api/admin/items -----------------------------------------------
+  //
+  // Lists all food items across all stalls for stock management.
+  app.get("/api/admin/items", (_req: Request, res: Response): void => {
+    res.status(200).json(store.getFoodItems());
+  });
+
+  // --- PATCH /api/admin/items/:itemId/stock -------------------------------
+  //
+  // Updates the available quantity of a food item. Accepts a JSON body with
+  // `{ availableQuantity: number }`. Setting to 0 marks the item out of stock.
+  app.patch(
+    "/api/admin/items/:itemId/stock",
+    (req: Request, res: Response): void => {
+      const { itemId } = req.params;
+      const body = req.body as { availableQuantity?: unknown };
+
+      if (
+        body.availableQuantity === undefined ||
+        typeof body.availableQuantity !== "number" ||
+        !Number.isFinite(body.availableQuantity) ||
+        body.availableQuantity < 0
+      ) {
+        const errBody: ApiError = {
+          error: "availableQuantity must be a non-negative number",
+          code: "INVALID_QUANTITY",
+        };
+        res.status(400).json(errBody);
+        return;
+      }
+
+      const item = store.getFoodItem(itemId);
+      if (!item) {
+        const errBody: ApiError = {
+          error: "Item not found",
+          code: "ITEM_NOT_FOUND",
+        };
+        res.status(404).json(errBody);
+        return;
+      }
+
+      store.setAvailableQuantity(itemId, body.availableQuantity);
+      const updated = store.getFoodItem(itemId)!;
+      res.status(200).json(updated);
+    }
+  );
 
   // --- GET /api/wallet/:customerId ----------------------------------------
   //

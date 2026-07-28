@@ -12,7 +12,7 @@ export type Spice = "mild" | "medium" | "hot";
 export type Flavor = "sweet" | "savory";
 export type Portion = "light" | "regular" | "hearty"; // maps to hunger level
 
-export type OrderStatus = "Order Received" | "Preparing" | "Ready for Pickup";
+export type OrderStatus = "Craving Funded" | "Flavor Processing" | "Taste Ready for Pickup" | "Happiness Disbursed";
 
 export type SpinReward =
   | "5% discount"
@@ -188,9 +188,10 @@ export interface NotificationGateway {
 // --- Convenient value tuples for enumerations ------------------------------
 
 export const ORDER_STATUS_SEQUENCE: readonly OrderStatus[] = [
-  "Order Received",
-  "Preparing",
-  "Ready for Pickup",
+  "Craving Funded",
+  "Flavor Processing",
+  "Taste Ready for Pickup",
+  "Happiness Disbursed",
 ] as const;
 
 export const SPIN_REWARDS: readonly SpinReward[] = [

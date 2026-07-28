@@ -21,7 +21,9 @@ export const ROUTES = {
   investor: "/investor",
   spin: "/spin",
   profile: "/profile",
+  orderHistory: "/order-history",
   admin: "/admin",
+  stock: "/admin/stock",
 } as const;
 
 /** Build the marketplace menu path for a specific stall. */

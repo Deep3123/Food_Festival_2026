@@ -1,40 +1,49 @@
 /**
- * FoodCoins domain module for ByteBites.
+ * Reward Points domain module for ByteBites.
  *
- * Pure, framework-agnostic functions for the digital wallet's reward math.
+ * Pure, framework-agnostic functions for the reward system math.
  *
- * FoodCoins are always whole (integer) coins. Customers earn coins equal to
+ * Reward points are always whole (integer). Customers earn points equal to
  * 10 percent of an order total in rupees, rounded down to the nearest whole
- * coin, and may redeem coins against their balance.
- *
- * Money handling: to avoid floating-point drift when taking 10 percent of a
- * rupee amount that may carry paise, the earning calculation is performed on
- * integer paise (1 rupee = 100 paise) internally. Ten percent of the total in
- * rupees equals `totalPaise / 1000` coins, floored to a whole coin.
+ * point. Points can be redeemed on the next order: 2 points = ₹1 (1 point = ₹0.50).
  *
  * Validates: Requirements 9.1, 9.3, 9.4
  */
 
 /**
- * Compute the FoodCoins earned for an order: floor(0.10 × total).
+ * Compute the reward points earned for an order: floor(10% of total).
  *
- * The result is always a non-negative integer. The calculation is performed on
- * integer paise so that a total such as 149.90 rupees yields the same coin
- * count regardless of floating-point representation (Req 9.1).
+ * Example: order total ₹120 → 12 points earned.
+ * The result is always a non-negative integer.
  *
- * Negative or non-finite totals earn no coins (defensive clamp to 0).
+ * Negative or non-finite totals earn no points (defensive clamp to 0).
  */
 export function coinsForOrder(orderTotal: number): number {
   if (!Number.isFinite(orderTotal) || orderTotal <= 0) {
     return 0;
   }
-  // 0.10 × total (rupees) == totalPaise / 1000 coins.
-  const totalPaise = Math.round(orderTotal * 100);
-  return Math.floor(totalPaise / 1000);
+  // 10% of total, floored to whole points.
+  return Math.floor(orderTotal * 0.10);
 }
 
 /**
- * Apply a redemption of `amount` FoodCoins against a wallet `balance`.
+ * Convert reward points to their rupee value.
+ * 2 points = ₹1, so 1 point = ₹0.50.
+ */
+export function pointsToRupees(points: number): number {
+  return points * 0.50;
+}
+
+/**
+ * Convert a rupee discount amount to the points required.
+ * ₹1 = 2 points.
+ */
+export function rupeesToPoints(rupees: number): number {
+  return Math.ceil(rupees * 2);
+}
+
+/**
+ * Apply a redemption of `amount` reward points against a wallet `balance`.
  *
  * If the amount can be covered by the balance, the redemption succeeds and the
  * balance is reduced by exactly the redeemed amount (Req 9.3). If the amount

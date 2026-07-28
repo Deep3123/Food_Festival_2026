@@ -2,8 +2,9 @@
  * Order status transition domain module for ByteBites.
  *
  * Pure, framework-agnostic status advancement. An order progresses through the
- * sequence "Order Received" -> "Preparing" -> "Ready for Pickup". Advancing an
- * order already at "Ready for Pickup" is a no-op (it stays at the last value).
+ * sequence "Craving Funded" -> "Flavor Processing" -> "Taste Ready for Pickup"
+ * -> "Happiness Disbursed". Advancing an order already at "Happiness Disbursed"
+ * is a no-op (it stays at the last value).
  *
  * Validates: Requirements 6.1, 6.2
  */
@@ -16,7 +17,7 @@ import { ORDER_STATUS_SEQUENCE } from "../types/index.js";
  *
  * The status moves to the immediate next value in
  * `ORDER_STATUS_SEQUENCE` (Req 6.1, 6.2). The terminal value
- * "Ready for Pickup" remains unchanged when advanced.
+ * "Happiness Disbursed" remains unchanged when advanced.
  */
 export function nextStatus(current: OrderStatus): OrderStatus {
   const index = ORDER_STATUS_SEQUENCE.indexOf(current);

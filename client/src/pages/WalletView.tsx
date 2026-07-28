@@ -1,17 +1,11 @@
 /**
- * WalletView — FoodCoins balance and redemption (Req 9.2, 9.5).
+ * WalletView — Reward Points balance and redemption.
  *
- * Reads the `:customerId` route param, fetches the wallet, and displays the
- * current FoodCoins balance (Req 9.2). It offers the three redemption option
- * types the Wallet supports — free toppings, discounts, and lucky draw entries
- * (Req 9.5) — each redeeming a fixed number of FoodCoins via `api.redeem`. On a
- * successful redemption the returned wallet is rendered, reflecting the new
- * balance; an insufficient balance is surfaced from the server's rejection
- * message (Req 9.4).
+ * Displays the user's reward points balance and their equivalent rupee value.
+ * Users earn 10% of every order total as reward points.
+ * Redemption: 2 points = ₹1 (1 point = ₹0.50).
  *
- * Customer identity: the demo build has no auth, so the wallet page is reached
- * with a fixed demo customer id (see `demo.ts`), keeping earned and redeemed
- * coins on a single stable account.
+ * Users can redeem points for a discount on their next order.
  */
 
 import { useCallback, useEffect, useState } from "react";
@@ -19,18 +13,19 @@ import { useParams } from "react-router-dom";
 import { ApiClientError, getWallet, redeem } from "../api/client.js";
 import type { Wallet } from "../../../types/index.js";
 
-/** A redemption option: a display label and its FoodCoins cost. */
+/** A redemption option: a display label and its points cost. */
 interface RedemptionOption {
   key: "toppings" | "discount" | "lucky-draw";
   label: string;
   cost: number;
+  rupeeValue: number;
 }
 
-/** The three redemption option types the Wallet supports (Req 9.5). */
+/** Redemption options with rupee equivalents (2 points = ₹1). */
 export const REDEMPTION_OPTIONS: readonly RedemptionOption[] = [
-  { key: "toppings", label: "Free toppings", cost: 20 },
-  { key: "discount", label: "Discount", cost: 50 },
-  { key: "lucky-draw", label: "Lucky draw entry", cost: 30 },
+  { key: "toppings", label: "₹10 off next order", cost: 20, rupeeValue: 10 },
+  { key: "discount", label: "₹25 off next order", cost: 50, rupeeValue: 25 },
+  { key: "lucky-draw", label: "₹15 off next order", cost: 30, rupeeValue: 15 },
 ] as const;
 
 export function WalletView(): JSX.Element {
@@ -53,7 +48,7 @@ export function WalletView(): JSX.Element {
       })
       .catch((err: unknown) => {
         if (!active) return;
-        setError(err instanceof Error ? err.message : "Failed to load wallet.");
+        setError(err instanceof Error ? err.message : "Failed to load rewards.");
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -70,11 +65,11 @@ export function WalletView(): JSX.Element {
       try {
         const updated = await redeem(customerId, option.cost);
         setWallet(updated);
-        setNotice(`Redeemed ${option.cost} FoodCoins for ${option.label}.`);
+        setNotice(`Redeemed ${option.cost} points for ${option.label}!`);
       } catch (err: unknown) {
         const message =
           err instanceof ApiClientError && err.code === "INSUFFICIENT_BALANCE"
-            ? "Insufficient FoodCoins balance for this reward."
+            ? "Not enough reward points for this redemption."
             : err instanceof Error
               ? err.message
               : "Redemption failed. Please try again.";
@@ -84,19 +79,28 @@ export function WalletView(): JSX.Element {
     [customerId]
   );
 
+  const balance = wallet?.foodCoins ?? 0;
+  const rupeeValue = (balance * 0.50).toFixed(2);
+
   return (
     <main className="wallet">
-      <h1>Your Wallet</h1>
+      <h1>Your Rewards</h1>
 
       {loading && !wallet ? (
-        <p role="status">Loading wallet…</p>
+        <p role="status">Loading rewards…</p>
       ) : (
-        <p className="wallet-balance">
-          FoodCoins balance:{" "}
-          <strong data-testid="wallet-balance">
-            {wallet ? wallet.foodCoins : 0}
-          </strong>
-        </p>
+        <div className="wallet-balance-card">
+          <p className="wallet-balance">
+            Reward Points:{" "}
+            <strong data-testid="wallet-balance">{balance}</strong>
+          </p>
+          <p className="wallet-value">
+            Worth: <strong>₹{rupeeValue}</strong>
+          </p>
+          <p className="wallet-info">
+            Earn 10% reward points on every order. 2 points = ₹1.
+          </p>
+        </div>
       )}
 
       {notice && (
@@ -111,16 +115,17 @@ export function WalletView(): JSX.Element {
       )}
 
       <section className="wallet-redemptions" aria-label="Redemption options">
-        <h2>Redeem your FoodCoins</h2>
+        <h2>Redeem your points</h2>
         <ul className="redemption-options">
           {REDEMPTION_OPTIONS.map((option) => (
             <li key={option.key} data-testid={`redemption-${option.key}`}>
               <span className="redemption-label">{option.label}</span>
-              <span className="redemption-cost">{option.cost} FoodCoins</span>
+              <span className="redemption-cost">{option.cost} points (= ₹{option.rupeeValue})</span>
               <button
                 type="button"
                 onClick={() => void handleRedeem(option)}
-                aria-label={`Redeem ${option.label} for ${option.cost} FoodCoins`}
+                disabled={balance < option.cost}
+                aria-label={`Redeem ${option.label} for ${option.cost} points`}
               >
                 Redeem
               </button>

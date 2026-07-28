@@ -11,6 +11,8 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { MemoryRouter } from "react-router-dom";
 import * as api from "../api/client.js";
 import type { OrderResponse } from "../api/client.js";
+import { CustomerProvider, CUSTOMER_STORAGE_KEY } from "../customer/CustomerContext.js";
+import { ADMIN_MOBILE } from "../constants.js";
 import { AdminOrdersView } from "./AdminOrdersView.js";
 
 vi.mock("../api/client.js", async () => {
@@ -30,7 +32,7 @@ const order: OrderResponse = {
     { itemId: "item-1", name: "Paneer Tikka", unitPrice: 180, quantity: 2 },
   ],
   total: 360,
-  status: "Order Received",
+  status: "Craving Funded",
   paid: true,
   paymentMethod: "UPI",
   customerId: "+919876543210",
@@ -40,18 +42,26 @@ const order: OrderResponse = {
 
 function renderAdmin(): void {
   render(
-    <MemoryRouter>
-      <AdminOrdersView />
-    </MemoryRouter>
+    <CustomerProvider>
+      <MemoryRouter>
+        <AdminOrdersView />
+      </MemoryRouter>
+    </CustomerProvider>
   );
 }
 
 beforeEach(() => {
   getAdminOrdersMock.mockReset();
   advanceOrderMock.mockReset();
+  // Set admin identity so the view is accessible.
+  window.localStorage.setItem(
+    CUSTOMER_STORAGE_KEY,
+    JSON.stringify({ mobile: ADMIN_MOBILE, name: "Admin" })
+  );
 });
 
 afterEach(() => {
+  window.localStorage.clear();
   cleanup();
 });
 
@@ -66,7 +76,7 @@ describe("AdminOrdersView listing", () => {
     expect(row).toHaveTextContent("stall-tandoori");
     expect(row).toHaveTextContent("+919876543210");
     expect(screen.getByTestId("admin-status-BB-ABC-1")).toHaveTextContent(
-      "Order Received"
+      "Craving Funded"
     );
     // The unauthenticated demo note is present.
     expect(screen.getByTestId("admin-note")).toBeInTheDocument();
@@ -77,8 +87,8 @@ describe("AdminOrdersView advance", () => {
   it("advances an order via POST and refreshes the list", async () => {
     getAdminOrdersMock
       .mockResolvedValueOnce([order])
-      .mockResolvedValue([{ ...order, status: "Preparing" }]);
-    advanceOrderMock.mockResolvedValueOnce({ ...order, status: "Preparing" });
+      .mockResolvedValue([{ ...order, status: "Flavor Processing" }]);
+    advanceOrderMock.mockResolvedValueOnce({ ...order, status: "Flavor Processing" });
 
     renderAdmin();
 
@@ -89,14 +99,14 @@ describe("AdminOrdersView advance", () => {
     );
     await waitFor(() =>
       expect(screen.getByTestId("admin-status-BB-ABC-1")).toHaveTextContent(
-        "Preparing"
+        "Flavor Processing"
       )
     );
   });
 
-  it("disables the advance action once an order is Ready for Pickup", async () => {
+  it("disables the advance action once an order is Happiness Disbursed", async () => {
     getAdminOrdersMock.mockResolvedValue([
-      { ...order, status: "Ready for Pickup" },
+      { ...order, status: "Happiness Disbursed" },
     ]);
 
     renderAdmin();

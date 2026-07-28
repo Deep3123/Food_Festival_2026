@@ -42,6 +42,8 @@ import { InvestorSection } from "./pages/InvestorSection.js";
 import { SpinWheel } from "./pages/SpinWheel.js";
 import { ProfileView } from "./pages/ProfileView.js";
 import { AdminOrdersView } from "./pages/AdminOrdersView.js";
+import { OrderHistoryView } from "./pages/OrderHistoryView.js";
+import { StockManagementView } from "./pages/StockManagementView.js";
 
 export function App(): JSX.Element {
   return (
@@ -63,7 +65,9 @@ export function App(): JSX.Element {
           <Route path={ROUTES.investor} element={<InvestorSection />} />
           <Route path={ROUTES.spin} element={<SpinWheel />} />
           <Route path={ROUTES.profile} element={<ProfileView />} />
+          <Route path={ROUTES.orderHistory} element={<OrderHistoryView />} />
           <Route path={ROUTES.admin} element={<AdminOrdersView />} />
+          <Route path={ROUTES.stock} element={<StockManagementView />} />
         </Routes>
       </CartProvider>
     </CustomerProvider>

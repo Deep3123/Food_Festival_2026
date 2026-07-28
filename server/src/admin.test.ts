@@ -24,7 +24,7 @@ function makeOrder(token: string, stallId: string, createdAt: string): Order {
     stallId,
     items: [{ itemId: "i", name: "I", unitPrice: 10, quantity: 1 }],
     total: 10,
-    status: "Order Received",
+    status: "Craving Funded",
     paid: true,
     paymentMethod: "UPI",
     customerId: "9876543210",
@@ -98,6 +98,6 @@ describe("GET /api/admin/orders/:token", () => {
 
     const res = await request(app).post("/api/orders/T-adv/advance");
     expect(res.status).toBe(200);
-    expect(res.body.status).toBe("Preparing");
+    expect(res.body.status).toBe("Flavor Processing");
   });
 });

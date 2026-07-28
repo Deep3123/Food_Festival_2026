@@ -1,30 +1,13 @@
 /**
- * CheckoutView — trigger a UPI payment and surface the order token (Req 5.1, 5.3, 5.5).
+ * CheckoutView — trigger payment with optional reward points redemption.
  *
- * Confirming checkout calls `api.checkout` with the current cart (stall,
- * customer, and line items). The server recomputes the total, contacts the
- * payment gateway, and on success creates the order and issues an Order_Token.
- *
- * On success the issued token is displayed to the customer along with a link
- * to track the order (Req 5.5). On failure — whether the gateway reports a
- * failed payment (`ApiClientError` code `PAYMENT_FAILED`) or any other error —
- * a payment failure message is shown and the cart is retained so the customer
- * can retry (Req 5.3). The cart is never cleared client-side by this view, so
- * its contents always survive a failed attempt.
- *
- * Customer identity: the demo build has no auth, so the customer is identified
- * by their mobile number captured via the customer profile form (see
- * `CustomerContext`). The mobile number is sent as the checkout `customerId` so
- * earned FoodCoins accrue to that account. If no customer is set yet, the view
- * gates on a mobile-entry form before allowing payment.
- *
- * After a successful checkout, a WhatsApp confirmation note is shown when the
- * server reports `notified: true`.
+ * Users can toggle "Use reward points" to apply their available points as a
+ * discount (2 points = ₹1). The discounted amount is shown before payment.
  */
 
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { ApiClientError, checkout } from "../api/client.js";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ApiClientError, checkout, getWallet } from "../api/client.js";
 import type { CheckoutResponse } from "../api/client.js";
 import { useCart } from "../cart/CartContext.js";
 import { useCustomer } from "../customer/CustomerContext.js";
@@ -42,14 +25,29 @@ type CheckoutState =
   | { status: "failed"; message: string };
 
 export function CheckoutView(): JSX.Element {
-  const { cart, total } = useCart();
+  const { cart, total, clearCart } = useCart();
   const { customer } = useCustomer();
+  const navigate = useNavigate();
   const [state, setState] = useState<CheckoutState>({ status: "idle" });
+  const [rewardBalance, setRewardBalance] = useState(0);
+  const [useRewards, setUseRewards] = useState(false);
+
+  // Fetch the user's reward points balance
+  useEffect(() => {
+    if (!customer) return;
+    getWallet(customer.mobile)
+      .then((w) => setRewardBalance(w.foodCoins))
+      .catch(() => setRewardBalance(0));
+  }, [customer]);
+
+  // Calculate discount: use all available points, capped at order total
+  const maxDiscount = Math.min(rewardBalance * 0.50, total); // 2 points = ₹1
+  const pointsToUse = Math.ceil(maxDiscount * 2);
+  const discount = useRewards ? maxDiscount : 0;
+  const amountToPay = total - discount;
 
   async function handlePay(): Promise<void> {
     if (!customer) return;
-    // Resolve the originating stall from the cart's items when possible so the
-    // order is associated with the right stall; fall back to the demo stall.
     const stallId = DEMO_STALL_ID;
     setState({ status: "paying" });
     try {
@@ -57,21 +55,36 @@ export function CheckoutView(): JSX.Element {
         stallId,
         customerId: customer.mobile,
         items: toCartItems(cart),
+        redeemPoints: useRewards ? pointsToUse : undefined,
       });
+      clearCart();
       setState({ status: "success", result, mobile: customer.mobile });
+      navigate(ROUTES.orderHistory);
     } catch (err: unknown) {
-      const message =
-        err instanceof ApiClientError && err.code === "PAYMENT_FAILED"
-          ? "Payment failed. Your cart is safe — please try again."
-          : err instanceof Error
+      let message: string;
+      if (err instanceof ApiClientError) {
+        if (err.code === "PAYMENT_FAILED") {
+          message = "Payment failed. Your cart is safe — please try again.";
+        } else if (
+          err.code === "INSUFFICIENT_STOCK" ||
+          err.code === "ITEM_UNAVAILABLE"
+        ) {
+          message = err.message;
+        } else {
+          message = err.message;
+        }
+      } else {
+        message =
+          err instanceof Error
             ? err.message
             : "Payment failed. Your cart is safe — please try again.";
+      }
       setState({ status: "failed", message });
     }
   }
 
   if (state.status === "success") {
-    const { token, coinsEarned, notified } = state.result;
+    const { token, coinsEarned, notified, discount: appliedDiscount } = state.result;
     return (
       <main className="checkout">
         <h1>Payment successful</h1>
@@ -79,7 +92,12 @@ export function CheckoutView(): JSX.Element {
         <p className="checkout-token" data-testid="order-token">
           <strong>{token}</strong>
         </p>
-        <p className="checkout-coins">You earned {coinsEarned} FoodCoins.</p>
+        <p className="checkout-coins">You earned {coinsEarned} reward points!</p>
+        {appliedDiscount > 0 && (
+          <p className="checkout-discount-applied">
+            Discount applied: {formatINR(appliedDiscount)}
+          </p>
+        )}
         {notified && (
           <p className="checkout-notified" data-testid="checkout-notified">
             A confirmation has been sent to {state.mobile} on WhatsApp.
@@ -124,9 +142,39 @@ export function CheckoutView(): JSX.Element {
   return (
     <main className="checkout">
       <h1>Checkout</h1>
-      <p className="checkout-total" data-testid="checkout-total">
-        Amount to pay: <strong>{formatINR(total)}</strong>
-      </p>
+
+      <div className="checkout-summary">
+        <p className="checkout-total" data-testid="checkout-total">
+          Subtotal: <strong>{formatINR(total)}</strong>
+        </p>
+
+        {rewardBalance > 0 && (
+          <div className="checkout-rewards" data-testid="checkout-rewards">
+            <label className="checkout-rewards-toggle">
+              <input
+                type="checkbox"
+                checked={useRewards}
+                onChange={(e) => setUseRewards(e.target.checked)}
+              />
+              <span>
+                Use reward points ({rewardBalance} pts = {formatINR(rewardBalance * 0.50)})
+              </span>
+            </label>
+            {useRewards && (
+              <p className="checkout-discount">
+                Discount: <strong>−{formatINR(discount)}</strong> ({pointsToUse} points)
+              </p>
+            )}
+          </div>
+        )}
+
+        {useRewards && (
+          <p className="checkout-final-amount">
+            Amount to pay: <strong>{formatINR(amountToPay)}</strong>
+          </p>
+        )}
+      </div>
+
       <p className="checkout-customer" data-testid="checkout-customer">
         Ordering as {customer.name || customer.mobile} ({customer.mobile}).
       </p>
@@ -143,7 +191,9 @@ export function CheckoutView(): JSX.Element {
         onClick={() => void handlePay()}
         disabled={state.status === "paying"}
       >
-        {state.status === "paying" ? "Processing…" : "Pay with UPI"}
+        {state.status === "paying"
+          ? "Processing…"
+          : `Pay ${formatINR(amountToPay)} with UPI`}
       </button>
     </main>
   );

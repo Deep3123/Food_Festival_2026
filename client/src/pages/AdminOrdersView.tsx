@@ -1,25 +1,23 @@
 /**
- * AdminOrdersView — an unauthenticated demo seller/admin order dashboard.
+ * AdminOrdersView — admin order dashboard with sub-tabs.
  *
- * Lists orders from `GET /api/admin/orders` (most-recent first), polled on the
- * shared ~3s interval (via `usePolling`) so the table stays fresh, with an
- * explicit refresh button too. Each row shows the token, stall, an items
- * summary, total, customer mobile, status, and created time. An "Advance
- * status" action per row calls `advanceOrder(token)` (POST) and refreshes; it
- * is disabled once the order reaches "Ready for Pickup".
- *
- * An optional stall filter narrows the list to a single stall.
- *
- * SECURITY NOTE: this view (and its backing `/api/admin/*` endpoints) is
- * intentionally UNAUTHENTICATED for the festival demo. In production it MUST be
- * placed behind seller authentication/authorization.
+ * Orders are segregated into 3 categories:
+ *   - New Orders: status "Craving Funded"
+ *   - Processing: status "Flavor Processing" or "Taste Ready for Pickup"
+ *   - Completed: status "Happiness Disbursed"
  */
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
+import { Link } from "react-router-dom";
 import { advanceOrder, getAdminOrders } from "../api/client.js";
 import type { OrderResponse } from "../api/client.js";
 import { usePolling } from "../hooks/usePolling.js";
+import { useCustomer } from "../customer/CustomerContext.js";
+import { ADMIN_MOBILE } from "../constants.js";
+import { ROUTES } from "../routes.js";
 import { formatINR } from "../format.js";
+
+type AdminTab = "new" | "processing" | "completed";
 
 /** Summarize a list of cart items as "2× Paneer Tikka, 1× Naan". */
 function itemsSummary(items: OrderResponse["items"]): string {
@@ -27,7 +25,7 @@ function itemsSummary(items: OrderResponse["items"]): string {
   return items.map((i) => `${i.quantity}× ${i.name}`).join(", ");
 }
 
-/** Format an ISO timestamp for display; falls back to the raw value. */
+/** Format an ISO timestamp for display. */
 function formatCreatedAt(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
@@ -35,19 +33,30 @@ function formatCreatedAt(iso: string): string {
 }
 
 export function AdminOrdersView(): JSX.Element {
-  const [stallFilter, setStallFilter] = useState("");
+  const { customer } = useCustomer();
 
-  const fetchOrders = useCallback(
-    () => getAdminOrders(stallFilter.trim() || undefined),
-    [stallFilter]
-  );
+  if (!customer || customer.mobile !== ADMIN_MOBILE) {
+    return (
+      <main className="admin">
+        <h1>Access Denied</h1>
+        <p>You do not have permission to view this page.</p>
+        <Link to={ROUTES.home}>Go to Home</Link>
+      </main>
+    );
+  }
+
+  return <AdminOrdersPanel />;
+}
+
+function AdminOrdersPanel(): JSX.Element {
+  const [activeTab, setActiveTab] = useState<AdminTab>("new");
+
+  const fetchOrders = useCallback(() => getAdminOrders(), []);
   const { data, error, loading, refresh } =
     usePolling<OrderResponse[]>(fetchOrders);
 
   const [advancingToken, setAdvancingToken] = useState<string | null>(null);
-  const [advanceError, setAdvanceError] = useState<string | undefined>(
-    undefined
-  );
+  const [advanceError, setAdvanceError] = useState<string | undefined>(undefined);
 
   const handleAdvance = useCallback(
     async (token: string): Promise<void> => {
@@ -67,47 +76,57 @@ export function AdminOrdersView(): JSX.Element {
 
   const orders = data ?? [];
 
-  // Stall options derived from the current result set, for the filter select.
-  const stallOptions = useMemo(() => {
-    const ids = new Set<string>();
-    for (const order of orders) ids.add(order.stallId);
-    return Array.from(ids).sort();
-  }, [orders]);
+  // Filter orders by tab
+  const newOrders = orders.filter((o) => o.status === "Craving Funded");
+  const processingOrders = orders.filter(
+    (o) => o.status === "Flavor Processing" || o.status === "Taste Ready for Pickup"
+  );
+  const completedOrders = orders.filter((o) => o.status === "Happiness Disbursed");
+
+  const displayedOrders =
+    activeTab === "new"
+      ? newOrders
+      : activeTab === "processing"
+        ? processingOrders
+        : completedOrders;
 
   return (
     <main className="admin">
       <header className="admin-header">
         <h1>Order Management</h1>
-        <p className="admin-note" data-testid="admin-note">
-          Unauthenticated demo admin view — in production this would sit behind
-          seller sign-in.
-        </p>
       </header>
 
-      <div className="admin-controls">
-        <label className="admin-filter" htmlFor="admin-stall-filter">
-          Filter by stall
-          <select
-            id="admin-stall-filter"
-            data-testid="admin-stall-filter"
-            value={stallFilter}
-            onChange={(e) => setStallFilter(e.target.value)}
-          >
-            <option value="">All stalls</option>
-            {stallOptions.map((id) => (
-              <option key={id} value={id}>
-                {id}
-              </option>
-            ))}
-          </select>
-        </label>
+      {/* Sub-tabs */}
+      <div className="admin-tabs">
         <button
           type="button"
-          className="admin-refresh"
-          data-testid="admin-refresh"
-          onClick={refresh}
+          className={`admin-tab ${activeTab === "new" ? "admin-tab--active" : ""}`}
+          onClick={() => setActiveTab("new")}
         >
-          Refresh
+          New Orders
+          {newOrders.length > 0 && (
+            <span className="admin-tab-badge">{newOrders.length}</span>
+          )}
+        </button>
+        <button
+          type="button"
+          className={`admin-tab ${activeTab === "processing" ? "admin-tab--active" : ""}`}
+          onClick={() => setActiveTab("processing")}
+        >
+          Processing
+          {processingOrders.length > 0 && (
+            <span className="admin-tab-badge">{processingOrders.length}</span>
+          )}
+        </button>
+        <button
+          type="button"
+          className={`admin-tab ${activeTab === "completed" ? "admin-tab--active" : ""}`}
+          onClick={() => setActiveTab("completed")}
+        >
+          Completed
+          {completedOrders.length > 0 && (
+            <span className="admin-tab-badge">{completedOrders.length}</span>
+          )}
         </button>
       </div>
 
@@ -125,66 +144,66 @@ export function AdminOrdersView(): JSX.Element {
 
       {loading && !data && !error && <p role="status">Loading orders…</p>}
 
-      {data &&
-        (orders.length === 0 ? (
-          <p data-testid="admin-empty">No orders yet.</p>
-        ) : (
-          <table className="admin-orders-table">
-            <thead>
-              <tr>
-                <th scope="col">Token</th>
-                <th scope="col">Stall</th>
-                <th scope="col">Items</th>
-                <th scope="col">Total</th>
-                <th scope="col">Customer</th>
-                <th scope="col">Status</th>
-                <th scope="col">Created</th>
-                <th scope="col">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((order) => {
-                const atEnd = order.status === "Ready for Pickup";
-                const busy = advancingToken === order.token;
-                return (
-                  <tr
-                    key={order.token}
-                    className="admin-order-row"
-                    data-testid={`admin-order-${order.token}`}
+      {data && displayedOrders.length === 0 && (
+        <p className="admin-empty-tab" data-testid="admin-empty">
+          No {activeTab === "new" ? "new" : activeTab === "processing" ? "processing" : "completed"} orders.
+        </p>
+      )}
+
+      {data && displayedOrders.length > 0 && (
+        <div className="admin-order-cards">
+          {displayedOrders.map((order) => {
+            const atEnd = order.status === "Happiness Disbursed";
+            const busy = advancingToken === order.token;
+            return (
+              <div
+                key={order.token}
+                className="admin-order-card"
+                data-testid={`admin-order-${order.token}`}
+              >
+                <div className="admin-order-card-header">
+                  <span className="admin-order-card-token">{order.token}</span>
+                  <span className="admin-order-card-time">
+                    {formatCreatedAt(order.createdAt)}
+                  </span>
+                </div>
+
+                <div className="admin-order-card-customer">
+                  👤 {order.customerId}
+                </div>
+
+                <div className="admin-order-card-items">
+                  {itemsSummary(order.items)}
+                </div>
+
+                <div className="admin-order-card-footer">
+                  <span className="admin-order-card-total">
+                    {formatINR(order.total)}
+                  </span>
+                  <span
+                    className="admin-status"
+                    data-testid={`admin-status-${order.token}`}
                   >
-                    <td className="admin-cell-token">{order.token}</td>
-                    <td>{order.stallId}</td>
-                    <td className="admin-cell-items">
-                      {itemsSummary(order.items)}
-                    </td>
-                    <td>{formatINR(order.total)}</td>
-                    <td>{order.customerId}</td>
-                    <td>
-                      <span
-                        className="admin-status"
-                        data-testid={`admin-status-${order.token}`}
-                      >
-                        {order.status}
-                      </span>
-                    </td>
-                    <td>{formatCreatedAt(order.createdAt)}</td>
-                    <td>
-                      <button
-                        type="button"
-                        className="admin-advance"
-                        data-testid={`admin-advance-${order.token}`}
-                        onClick={() => void handleAdvance(order.token)}
-                        disabled={atEnd || busy}
-                      >
-                        {busy ? "Advancing…" : "Advance status"}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        ))}
+                    {order.status}
+                  </span>
+                </div>
+
+                {!atEnd && (
+                  <button
+                    type="button"
+                    className="admin-advance"
+                    data-testid={`admin-advance-${order.token}`}
+                    onClick={() => void handleAdvance(order.token)}
+                    disabled={busy}
+                  >
+                    {busy ? "Advancing…" : "Advance Status →"}
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </main>
   );
 }

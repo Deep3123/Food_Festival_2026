@@ -13,8 +13,10 @@
  */
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ApiClientError, registerCustomer } from "../api/client.js";
 import { useCustomer } from "../customer/CustomerContext.js";
+import { ROUTES } from "../routes.js";
 import type { Customer } from "../../../types/index.js";
 
 export interface CustomerFormProps {
@@ -160,6 +162,15 @@ export function CustomerForm({
 
 export function ProfileView(): JSX.Element {
   const { customer } = useCustomer();
+  const navigate = useNavigate();
+  const isFirstTime = !customer;
+
+  function handleSaved() {
+    if (isFirstTime) {
+      navigate(ROUTES.home);
+    }
+  }
+
   return (
     <main className="profile">
       {customer && (
@@ -168,7 +179,7 @@ export function ProfileView(): JSX.Element {
           {customer.mobile}).
         </p>
       )}
-      <CustomerForm />
+      <CustomerForm onSaved={handleSaved} />
     </main>
   );
 }

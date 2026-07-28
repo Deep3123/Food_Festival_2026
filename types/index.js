@@ -7,9 +7,10 @@
  */
 // --- Convenient value tuples for enumerations ------------------------------
 export const ORDER_STATUS_SEQUENCE = [
-    "Order Received",
-    "Preparing",
-    "Ready for Pickup",
+    "Craving Funded",
+    "Flavor Processing",
+    "Taste Ready for Pickup",
+    "Happiness Disbursed",
 ];
 export const SPIN_REWARDS = [
     "5% discount",

@@ -3,10 +3,11 @@
  *
  * Reads the `:token` route param and polls `getOrder` on the shared ~3s
  * interval (via `usePolling`), rendering the current Order_Status label. The
- * three status values — "Order Received", "Preparing", and "Ready for Pickup"
- * — are surfaced verbatim from the server-authoritative order state, so the
- * displayed status always matches the stored status (Req 6.3) and refreshes
- * well inside the 5-second freshness window (Req 6.4).
+ * four status values — "Craving Funded", "Flavor Processing",
+ * "Taste Ready for Pickup", and "Happiness Disbursed" — are surfaced verbatim
+ * from the server-authoritative order state, so the displayed status always
+ * matches the stored status (Req 6.3) and refreshes well inside the 5-second
+ * freshness window (Req 6.4).
  *
  * An operator "Advance order" control issues a POST via `advanceOrder`
  * (`POST /api/orders/:token/advance`) — never a plain link/GET navigation to
@@ -81,7 +82,7 @@ export function OrderTracker(): JSX.Element {
             className="order-tracker-advance"
             data-testid="order-advance"
             onClick={handleAdvance}
-            disabled={advancing || data.status === "Ready for Pickup"}
+            disabled={advancing || data.status === "Happiness Disbursed"}
           >
             {advancing ? "Advancing…" : "Advance order"}
           </button>

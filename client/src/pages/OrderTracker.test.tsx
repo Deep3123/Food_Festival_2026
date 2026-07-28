@@ -68,21 +68,21 @@ afterEach(() => {
 
 describe("OrderTracker status label (Req 6.3)", () => {
   it("renders the current status label from the fetched order", async () => {
-    getOrderMock.mockResolvedValue(order("Preparing"));
+    getOrderMock.mockResolvedValue(order("Flavor Processing"));
 
     renderTracker();
 
     const status = await screen.findByTestId("order-status");
-    expect(status).toHaveTextContent("Preparing");
+    expect(status).toHaveTextContent("Flavor Processing");
   });
 
   it("renders the token from the route param", async () => {
-    getOrderMock.mockResolvedValue(order("Order Received"));
+    getOrderMock.mockResolvedValue(order("Craving Funded"));
 
     renderTracker();
 
     expect(await screen.findByTestId("order-status")).toHaveTextContent(
-      "Order Received"
+      "Craving Funded"
     );
     expect(screen.getByTestId("order-tracker-token")).toHaveTextContent(
       "BB-TOKEN-123"
@@ -93,9 +93,9 @@ describe("OrderTracker status label (Req 6.3)", () => {
 describe("OrderTracker advance control (Req 6.2)", () => {
   it("advances the order via a POST (advanceOrder) rather than a GET navigation", async () => {
     getOrderMock
-      .mockResolvedValueOnce(order("Order Received"))
-      .mockResolvedValue(order("Preparing"));
-    advanceOrderMock.mockResolvedValue(order("Preparing"));
+      .mockResolvedValueOnce(order("Craving Funded"))
+      .mockResolvedValue(order("Flavor Processing"));
+    advanceOrderMock.mockResolvedValue(order("Flavor Processing"));
 
     renderTracker();
 
@@ -106,12 +106,12 @@ describe("OrderTracker advance control (Req 6.2)", () => {
       expect(advanceOrderMock).toHaveBeenCalledWith("BB-TOKEN-123")
     );
     await waitFor(() =>
-      expect(screen.getByTestId("order-status")).toHaveTextContent("Preparing")
+      expect(screen.getByTestId("order-status")).toHaveTextContent("Flavor Processing")
     );
   });
 
-  it("disables the advance control once the order is Ready for Pickup", async () => {
-    getOrderMock.mockResolvedValue(order("Ready for Pickup"));
+  it("disables the advance control once the order is Happiness Disbursed", async () => {
+    getOrderMock.mockResolvedValue(order("Happiness Disbursed"));
 
     renderTracker();
 

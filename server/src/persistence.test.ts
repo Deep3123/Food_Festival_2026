@@ -34,7 +34,7 @@ const SAMPLE_ORDER: Order = {
   stallId: "stall-tandoori",
   items: [{ itemId: "item-x", name: "X", unitPrice: 100, quantity: 2 }],
   total: 200,
-  status: "Order Received",
+  status: "Craving Funded",
   paid: true,
   paymentMethod: "UPI",
   gatewayRef: "MOCK-1",

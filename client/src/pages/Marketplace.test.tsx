@@ -1,19 +1,15 @@
 /**
  * Unit tests for the Marketplace page.
  *
- * Covers the unknown-stall error view (Req 4.3): when the API rejects with an
- * ApiClientError carrying code STALL_NOT_FOUND, the page renders a
- * "stall not found" message. Also covers the happy path rendering a stall's
- * menu of food item cards.
+ * Covers rendering all food items from the full catalogue and the error state.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import type { FoodItem } from "../../../types/index.js";
-import { ApiClientError } from "../api/client.js";
 import * as api from "../api/client.js";
-import { ROUTES, stallPath } from "../routes.js";
+import { ROUTES } from "../routes.js";
 import { CartProvider } from "../cart/CartContext.js";
 import { Marketplace } from "./Marketplace.js";
 
@@ -21,17 +17,16 @@ vi.mock("../api/client.js", async () => {
   const actual = await vi.importActual<typeof import("../api/client.js")>(
     "../api/client.js"
   );
-  return { ...actual, getMenu: vi.fn() };
+  return { ...actual, getAllItems: vi.fn() };
 });
 
-const getMenuMock = vi.mocked(api.getMenu);
+const getAllItemsMock = vi.mocked(api.getAllItems);
 
-function renderMarketplaceAt(path: string): void {
+function renderMarketplace(): void {
   render(
     <CartProvider>
-      <MemoryRouter initialEntries={[path]}>
+      <MemoryRouter initialEntries={[ROUTES.marketplace]}>
         <Routes>
-          <Route path={ROUTES.stall} element={<Marketplace />} />
           <Route path={ROUTES.marketplace} element={<Marketplace />} />
         </Routes>
       </MemoryRouter>
@@ -54,32 +49,29 @@ const sampleItem: FoodItem = {
 };
 
 beforeEach(() => {
-  getMenuMock.mockReset();
+  getAllItemsMock.mockReset();
 });
 
 afterEach(() => {
   cleanup();
 });
 
-describe("Marketplace unknown stall error view (Req 4.3)", () => {
-  it("shows a stall-not-found message when getMenu rejects with STALL_NOT_FOUND", async () => {
-    getMenuMock.mockRejectedValueOnce(
-      new ApiClientError(404, "Stall not found", "STALL_NOT_FOUND")
-    );
+describe("Marketplace error view", () => {
+  it("shows an error message when getAllItems rejects", async () => {
+    getAllItemsMock.mockRejectedValueOnce(new Error("Network error"));
 
-    renderMarketplaceAt(stallPath("does-not-exist"));
+    renderMarketplace();
 
     const alert = await screen.findByRole("alert");
-    expect(alert).toHaveTextContent(/stall not found/i);
-    expect(alert).toHaveTextContent("does-not-exist");
+    expect(alert).toHaveTextContent(/something went wrong/i);
   });
 });
 
 describe("Marketplace menu rendering", () => {
   it("renders a food item card for each menu item", async () => {
-    getMenuMock.mockResolvedValueOnce([sampleItem]);
+    getAllItemsMock.mockResolvedValueOnce([sampleItem]);
 
-    renderMarketplaceAt(stallPath("stall-1"));
+    renderMarketplace();
 
     expect(await screen.findByTestId("food-card-item-1")).toBeInTheDocument();
     expect(

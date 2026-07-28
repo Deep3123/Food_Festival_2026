@@ -60,6 +60,8 @@ export interface CheckoutRequest {
   stallId: string;
   customerId: string;
   items: CartItem[];
+  /** Number of reward points to redeem (optional). 2 points = ₹1 discount. */
+  redeemPoints?: number;
 }
 
 export interface CheckoutResponse {
@@ -68,6 +70,8 @@ export interface CheckoutResponse {
   coinsEarned: number;
   spinAvailable: boolean;
   total: number;
+  /** Discount applied from redeemed reward points (in rupees). */
+  discount: number;
   /** Whether the WhatsApp order-confirmation notification was sent. */
   notified: boolean;
 }
@@ -166,6 +170,11 @@ export function getMenu(stallId: string): Promise<FoodItem[]> {
   );
 }
 
+/** GET /api/menu — all food items across all stalls. */
+export function getAllItems(): Promise<FoodItem[]> {
+  return request<FoodItem[]>("/menu");
+}
+
 /** POST /api/checkout — initiate payment and create an order on success. */
 export function checkout(req: CheckoutRequest): Promise<CheckoutResponse> {
   return postJson<CheckoutResponse>("/checkout", req);
@@ -197,6 +206,22 @@ export function getAdminOrders(stallId?: string): Promise<OrderResponse[]> {
   return request<OrderResponse[]>(`/admin/orders${query}`);
 }
 
+/** GET /api/admin/items — list all food items for stock management. */
+export function getAdminItems(): Promise<FoodItem[]> {
+  return request<FoodItem[]>("/admin/items");
+}
+
+/** PATCH /api/admin/items/:itemId/stock — update item stock level. */
+export function updateItemStock(
+  itemId: string,
+  availableQuantity: number
+): Promise<FoodItem> {
+  return request<FoodItem>(
+    `/admin/items/${encodeURIComponent(itemId)}/stock`,
+    { method: "PATCH", body: JSON.stringify({ availableQuantity }) }
+  );
+}
+
 /** GET /api/admin/orders/:token — a single order for the admin view. */
 export function getAdminOrder(token: string): Promise<OrderResponse> {
   return request<OrderResponse>(`/admin/orders/${encodeURIComponent(token)}`);
@@ -205,6 +230,13 @@ export function getAdminOrder(token: string): Promise<OrderResponse> {
 /** GET /api/orders/:token — current order state for tracking. */
 export function getOrder(token: string): Promise<OrderResponse> {
   return request<OrderResponse>(`/orders/${encodeURIComponent(token)}`);
+}
+
+/** GET /api/customers/:mobile/orders — all orders for a customer, most-recent first. */
+export function getCustomerOrders(mobile: string): Promise<OrderResponse[]> {
+  return request<OrderResponse[]>(
+    `/customers/${encodeURIComponent(mobile)}/orders`
+  );
 }
 
 /** POST /api/orders/:token/advance — operator advances the order status. */

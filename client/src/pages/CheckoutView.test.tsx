@@ -66,6 +66,7 @@ function renderCheckout(): void {
           <Routes>
             <Route path={ROUTES.checkout} element={<CheckoutView />} />
             <Route path={ROUTES.order} element={<div>ORDER TRACKER PAGE</div>} />
+            <Route path={ROUTES.orderHistory} element={<div data-testid="order-history-page">ORDER HISTORY PAGE</div>} />
           </Routes>
         </MemoryRouter>
       </CartProvider>
@@ -92,10 +93,10 @@ afterEach(() => {
 });
 
 describe("CheckoutView token display (Req 5.5)", () => {
-  it("shows the issued Order_Token after a successful checkout", async () => {
+  it("navigates to Order History after a successful checkout and clears the cart", async () => {
     checkoutMock.mockResolvedValueOnce({
       token: "BB-TOKEN-123",
-      status: "Order Received",
+      status: "Craving Funded",
       coinsEarned: 18,
       spinAvailable: true,
       total: 180,
@@ -106,16 +107,11 @@ describe("CheckoutView token display (Req 5.5)", () => {
     fireEvent.click(screen.getByRole("button", { name: "seed-cart" }));
     fireEvent.click(screen.getByRole("button", { name: "Pay with UPI" }));
 
-    const token = await screen.findByTestId("order-token");
-    expect(token).toHaveTextContent("BB-TOKEN-123");
-    // A link to track the order is present (Req 5.5).
-    expect(
-      screen.getByRole("link", { name: /track your order/i })
-    ).toBeInTheDocument();
-    // The WhatsApp confirmation note is shown when notified is true.
-    expect(screen.getByTestId("checkout-notified")).toHaveTextContent(
-      "+919876543210"
-    );
+    // After successful payment, navigates to the order history page.
+    const historyPage = await screen.findByTestId("order-history-page");
+    expect(historyPage).toBeInTheDocument();
+    // Cart is cleared after successful payment.
+    expect(screen.getByTestId("cart-count")).toHaveTextContent("0");
   });
 });
 
@@ -123,7 +119,7 @@ describe("CheckoutView customer identity", () => {
   it("sends the active customer's mobile as the checkout customerId", async () => {
     checkoutMock.mockResolvedValueOnce({
       token: "BB-TOKEN-9",
-      status: "Order Received",
+      status: "Craving Funded",
       coinsEarned: 5,
       spinAvailable: true,
       total: 180,
@@ -134,7 +130,8 @@ describe("CheckoutView customer identity", () => {
     fireEvent.click(screen.getByRole("button", { name: "seed-cart" }));
     fireEvent.click(await screen.findByRole("button", { name: "Pay with UPI" }));
 
-    await screen.findByTestId("order-token");
+    // After successful checkout, navigates to order history.
+    await screen.findByTestId("order-history-page");
     expect(checkoutMock).toHaveBeenCalledWith(
       expect.objectContaining({ customerId: "+919876543210" })
     );

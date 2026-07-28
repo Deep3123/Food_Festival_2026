@@ -82,7 +82,7 @@ describe("Store deterministic reset", () => {
       stallId: seedStalls[0].id,
       items: [{ itemId: "x", name: "X", unitPrice: 10, quantity: 1 }],
       total: 10,
-      status: "Order Received",
+      status: "Craving Funded",
       paid: true,
       paymentMethod: "UPI",
       customerId: "cust-1",
