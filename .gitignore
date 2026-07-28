@@ -1,0 +1,12 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.vite/
+coverage/
+.DS_Store
+*.local
+.env
+
+# JSON-file persistence data (survives restarts; not source-controlled)
+server/data/
+

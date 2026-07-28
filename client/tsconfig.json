@@ -1,0 +1,19 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "types": ["node", "@testing-library/jest-dom"],
+    "baseUrl": "..",
+    "paths": {
+      "@types/*": ["types/*"],
+      "@domain/*": ["domain/*"]
+    }
+  },
+  "references": [{ "path": "../tsconfig.json" }],
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.test.tsx"]
+}

@@ -1,0 +1,196 @@
+{
+  "orders": [
+    {
+      "token": "7837d20b-1f7d-4cef-9693-f33f2c39c314",
+      "stallId": "stall-tandoori",
+      "items": [
+        {
+          "itemId": "item-paneer-tikka",
+          "name": "Paneer Tikka",
+          "unitPrice": 180,
+          "quantity": 2
+        }
+      ],
+      "total": 360,
+      "status": "Ready for Pickup",
+      "paid": true,
+      "paymentMethod": "UPI",
+      "gatewayRef": "MOCK-000001",
+      "customerId": "95123445545",
+      "createdAt": "2026-07-27T13:07:34.302Z",
+      "spinUsed": false
+    },
+    {
+      "token": "34d317f2-344b-461f-85b1-949217c286ef",
+      "stallId": "stall-tandoori",
+      "items": [
+        {
+          "itemId": "item-butter-naan",
+          "name": "Butter Naan",
+          "unitPrice": 45,
+          "quantity": 3
+        }
+      ],
+      "total": 135,
+      "status": "Ready for Pickup",
+      "paid": true,
+      "paymentMethod": "UPI",
+      "gatewayRef": "MOCK-000002",
+      "customerId": "95123445545",
+      "createdAt": "2026-07-27T13:09:15.028Z",
+      "spinUsed": false
+    },
+    {
+      "token": "532385ae-fdbe-4089-8928-26af060f4e9a",
+      "stallId": "stall-tandoori",
+      "items": [
+        {
+          "itemId": "item-paneer-tikka",
+          "name": "Paneer Tikka",
+          "unitPrice": 180,
+          "quantity": 2
+        }
+      ],
+      "total": 360,
+      "status": "Order Received",
+      "paid": true,
+      "paymentMethod": "UPI",
+      "gatewayRef": "MOCK-000003",
+      "customerId": "5487894587",
+      "createdAt": "2026-07-27T13:10:25.309Z",
+      "spinUsed": false
+    },
+    {
+      "token": "592029e1-3d6c-4833-8ac7-83731d9b0866",
+      "stallId": "stall-tandoori",
+      "items": [
+        {
+          "itemId": "item-paneer-tikka",
+          "name": "Paneer Tikka",
+          "unitPrice": 180,
+          "quantity": 1
+        }
+      ],
+      "total": 180,
+      "status": "Ready for Pickup",
+      "paid": true,
+      "paymentMethod": "UPI",
+      "gatewayRef": "MOCK-000001",
+      "customerId": "5487894587",
+      "createdAt": "2026-07-28T05:18:38.921Z",
+      "spinUsed": false
+    },
+    {
+      "token": "4a37c5f4-608d-4e6a-bcfb-b4e409566626",
+      "stallId": "stall-tandoori",
+      "items": [
+        {
+          "itemId": "item-paneer-tikka",
+          "name": "Paneer Tikka",
+          "unitPrice": 180,
+          "quantity": 1
+        },
+        {
+          "itemId": "item-butter-naan",
+          "name": "Butter Naan",
+          "unitPrice": 45,
+          "quantity": 1
+        }
+      ],
+      "total": 225,
+      "status": "Order Received",
+      "paid": true,
+      "paymentMethod": "UPI",
+      "gatewayRef": "MOCK-000002",
+      "customerId": "9512311001",
+      "createdAt": "2026-07-28T06:25:33.137Z",
+      "spinUsed": false
+    },
+    {
+      "token": "A-0001",
+      "stallId": "stall-tandoori",
+      "items": [
+        {
+          "itemId": "item-paneer-tikka",
+          "name": "Paneer Tikka",
+          "unitPrice": 180,
+          "quantity": 2
+        }
+      ],
+      "total": 360,
+      "status": "Order Received",
+      "paid": true,
+      "paymentMethod": "UPI",
+      "gatewayRef": "MOCK-000001",
+      "customerId": "9512311001",
+      "createdAt": "2026-07-28T06:26:26.275Z",
+      "spinUsed": false
+    },
+    {
+      "token": "A-0002",
+      "stallId": "stall-tandoori",
+      "items": [
+        {
+          "itemId": "item-paneer-tikka",
+          "name": "Paneer Tikka",
+          "unitPrice": 180,
+          "quantity": 2
+        },
+        {
+          "itemId": "item-chicken-biryani",
+          "name": "Chicken Biryani",
+          "unitPrice": 260,
+          "quantity": 2
+        }
+      ],
+      "total": 880,
+      "status": "Order Received",
+      "paid": true,
+      "paymentMethod": "UPI",
+      "gatewayRef": "MOCK-000002",
+      "customerId": "9512311001",
+      "createdAt": "2026-07-28T06:26:49.362Z",
+      "spinUsed": false
+    }
+  ],
+  "wallets": [
+    {
+      "customerId": "95123445545",
+      "foodCoins": 29
+    },
+    {
+      "customerId": "5487894587",
+      "foodCoins": 34
+    },
+    {
+      "customerId": "9512311001",
+      "foodCoins": 146
+    }
+  ],
+  "referrals": [],
+  "customers": [
+    {
+      "mobile": "95123445545",
+      "name": "Ankit"
+    },
+    {
+      "mobile": "5487894587",
+      "name": "homesh"
+    },
+    {
+      "mobile": "9512311001",
+      "name": "Ankit"
+    }
+  ],
+  "itemQuantities": {
+    "item-paneer-tikka": 40,
+    "item-butter-naan": 120,
+    "item-chicken-biryani": 25,
+    "item-veg-hakka-noodles": 60,
+    "item-schezwan-fried-rice": 50,
+    "item-veg-momos": 0,
+    "item-gulab-jamun": 80,
+    "item-choco-brownie": 35,
+    "item-mango-lassi": 100
+  }
+}

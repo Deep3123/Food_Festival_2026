@@ -1,0 +1,895 @@
+/**
+ * ByteBites global stylesheet — a warm, elegant restaurant theme.
+ *
+ * Design language:
+ *   - Dark charcoal header with a gold/amber accent (classic restaurant site).
+ *   - Serif display headings (Georgia stack) over a clean sans-serif body.
+ *   - Soft cards on a warm off-white canvas, generous spacing, rounded corners.
+ *   - Responsive (mobile-first) and accessible (contrast + visible focus).
+ *
+ * Components are styled via the class names the existing components already
+ * emit (food-card*, cart*, hero*, metrics*, trending*, spin-wheel*, admin*,
+ * etc.), plus the new site header, profile form, and admin table.
+ */
+
+:root {
+  --bb-charcoal: #1c1a17;
+  --bb-charcoal-2: #26231f;
+  --bb-gold: #d4a437;
+  --bb-gold-dark: #b8891f;
+  --bb-cream: #fbf7f0;
+  --bb-card: #ffffff;
+  --bb-ink: #2a2622;
+  --bb-muted: #6f665c;
+  --bb-border: #e7ddcd;
+  --bb-danger: #b3261e;
+  --bb-success: #2e7d32;
+  --bb-shadow: 0 6px 20px rgba(28, 26, 23, 0.08);
+  --bb-radius: 12px;
+  --bb-maxw: 1080px;
+  --bb-serif: Georgia, "Times New Roman", serif;
+  --bb-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--bb-sans);
+  color: var(--bb-ink);
+  background-color: var(--bb-cream);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--bb-serif);
+  color: var(--bb-charcoal);
+  line-height: 1.2;
+  margin: 0 0 0.5em;
+}
+
+h1 {
+  font-size: clamp(1.7rem, 3.5vw, 2.6rem);
+}
+
+a {
+  color: var(--bb-gold-dark);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Accessible, visible focus states everywhere. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--bb-gold);
+  outline-offset: 2px;
+}
+
+button {
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.1rem;
+  background-color: var(--bb-gold);
+  color: #241c05;
+  font-weight: 600;
+  transition: background-color 0.15s ease, transform 0.05s ease;
+}
+
+button:hover:not(:disabled) {
+  background-color: var(--bb-gold-dark);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input,
+select {
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--bb-border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--bb-ink);
+}
+
+/* Page main regions get a consistent centered column. */
+main {
+  max-width: var(--bb-maxw);
+  margin: 0 auto;
+  padding: 2rem 1.25rem 3.5rem;
+}
+
+/* ---------------------------------------------------------------- header -- */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: var(--bb-charcoal);
+  border-bottom: 3px solid var(--bb-gold);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+.site-header-inner {
+  max-width: var(--bb-maxw);
+  margin: 0 auto;
+  padding: 0.7rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.site-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #fff;
+  font-family: var(--bb-serif);
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.site-brand:hover {
+  text-decoration: none;
+}
+
+.site-brand-mark {
+  color: var(--bb-gold);
+}
+
+.site-brand-name {
+  letter-spacing: 0.5px;
+}
+
+.site-nav {
+  display: flex;
+  gap: 1.1rem;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.site-nav-link {
+  color: #ece5da;
+  font-weight: 600;
+  padding: 0.3rem 0;
+  border-bottom: 2px solid transparent;
+}
+
+.site-nav-link:hover,
+.site-nav-link.active {
+  color: var(--bb-gold);
+  text-decoration: none;
+  border-bottom-color: var(--bb-gold);
+}
+
+.site-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.site-nav-profile {
+  color: #ece5da;
+  font-weight: 600;
+}
+
+.site-nav-profile:hover {
+  color: var(--bb-gold);
+  text-decoration: none;
+}
+
+.site-cart-link {
+  position: relative;
+  color: #fff;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.site-cart-link:hover {
+  text-decoration: none;
+}
+
+.site-cart-count {
+  position: absolute;
+  top: -8px;
+  right: -12px;
+  background: var(--bb-gold);
+  color: #241c05;
+  font-size: 0.72rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ------------------------------------------------------------------ hero -- */
+
+.hero {
+  text-align: center;
+  padding: 3.5rem 1.5rem;
+  background:
+    linear-gradient(rgba(28, 26, 23, 0.72), rgba(28, 26, 23, 0.78)),
+    url("https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1600&q=60")
+      center / cover no-repeat;
+  border-radius: var(--bb-radius);
+  color: #fff;
+  box-shadow: var(--bb-shadow);
+}
+
+.hero h1 {
+  color: #fff;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+}
+
+.hero-subheading {
+  font-size: 1.2rem;
+  color: #f3ede2;
+  margin: 0.25rem 0;
+}
+
+.hero-tagline {
+  font-family: var(--bb-serif);
+  font-style: italic;
+  font-size: 1.35rem;
+  color: var(--bb-gold);
+  margin-bottom: 1.75rem;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 0.9rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ------------------------------------------------------------ food cards -- */
+
+.marketplace-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.marketplace-cart-link {
+  font-weight: 600;
+}
+
+.food-card-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.5rem;
+}
+
+.food-card {
+  background: var(--bb-card);
+  border: 1px solid var(--bb-border);
+  border-radius: var(--bb-radius);
+  overflow: hidden;
+  box-shadow: var(--bb-shadow);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0 0 1rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.food-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(28, 26, 23, 0.14);
+}
+
+.food-card-image {
+  width: 100%;
+  height: 170px;
+  object-fit: cover;
+  display: block;
+  background: #efe7d8;
+}
+
+.food-card-name {
+  margin: 0.85rem 1rem 0.3rem;
+  font-size: 1.2rem;
+}
+
+.food-card-description {
+  margin: 0 1rem 0.6rem;
+  color: var(--bb-muted);
+  font-size: 0.92rem;
+  flex: 1;
+}
+
+.food-card-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 1rem 0.4rem;
+  font-size: 0.9rem;
+}
+
+.food-card-stars {
+  color: var(--bb-gold);
+  letter-spacing: 1px;
+}
+
+.food-card-rating-value {
+  color: var(--bb-muted);
+}
+
+.food-card-availability {
+  margin: 0 1rem 0.3rem;
+  font-size: 0.85rem;
+  color: var(--bb-muted);
+}
+
+.food-card-unavailable-label {
+  color: var(--bb-danger);
+  font-weight: 600;
+}
+
+.food-card-price {
+  margin: 0.2rem 1rem 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--bb-charcoal);
+}
+
+.food-card-add {
+  margin: 0 1rem;
+}
+
+.food-card-unavailable {
+  opacity: 0.7;
+}
+
+/* ------------------------------------------------------------------ cart -- */
+
+.cart-lines {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cart-line {
+  display: grid;
+  grid-template-columns: 2fr 1fr auto 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  background: var(--bb-card);
+  border: 1px solid var(--bb-border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  box-shadow: var(--bb-shadow);
+}
+
+.cart-line-name {
+  font-weight: 600;
+}
+
+.cart-line-quantity-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cart-line-quantity-controls button {
+  padding: 0.25rem 0.6rem;
+  min-width: 2rem;
+}
+
+.cart-line-quantity {
+  min-width: 1.5rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+.cart-line-total {
+  font-weight: 700;
+  text-align: right;
+}
+
+.cart-line-remove {
+  background: transparent;
+  color: var(--bb-danger);
+  border: 1px solid var(--bb-danger);
+}
+
+.cart-line-remove:hover:not(:disabled) {
+  background: var(--bb-danger);
+  color: #fff;
+}
+
+.cart-line-notice {
+  grid-column: 1 / -1;
+  color: var(--bb-danger);
+  font-size: 0.85rem;
+  margin: 0.25rem 0 0;
+}
+
+.cart-total {
+  font-size: 1.3rem;
+}
+
+.cart-checkout-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  background: var(--bb-gold);
+  color: #241c05;
+  font-weight: 700;
+  padding: 0.7rem 1.4rem;
+  border-radius: 8px;
+}
+
+.cart-checkout-link:hover {
+  background: var(--bb-gold-dark);
+  text-decoration: none;
+}
+
+/* -------------------------------------------------------------- checkout -- */
+
+.checkout-total,
+.checkout-customer,
+.checkout-identity-prompt {
+  font-size: 1.1rem;
+}
+
+.checkout-token {
+  font-size: 1.6rem;
+  color: var(--bb-charcoal);
+}
+
+.checkout-coins {
+  color: var(--bb-success);
+  font-weight: 600;
+}
+
+.checkout-notified {
+  background: #eef7ee;
+  border: 1px solid #cfe6cf;
+  color: var(--bb-success);
+  padding: 0.6rem 0.9rem;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+.checkout-error,
+.marketplace-error,
+.profile-error,
+.admin-error,
+.admin-advance-error,
+.wallet-error {
+  color: var(--bb-danger);
+  font-weight: 600;
+}
+
+.checkout-track-link,
+.checkout-pay {
+  display: inline-block;
+  margin-top: 0.75rem;
+}
+
+/* -------------------------------------------------------------- profile -- */
+
+.profile-form {
+  background: var(--bb-card);
+  border: 1px solid var(--bb-border);
+  border-radius: var(--bb-radius);
+  box-shadow: var(--bb-shadow);
+  padding: 1.75rem;
+  max-width: 440px;
+}
+
+.profile-lead {
+  color: var(--bb-muted);
+}
+
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.profile-field input {
+  font-weight: 400;
+}
+
+.profile-optional {
+  color: var(--bb-muted);
+  font-weight: 400;
+}
+
+.profile-submit {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.profile-saved {
+  color: var(--bb-success);
+  font-weight: 600;
+}
+
+.profile-current {
+  margin-bottom: 1rem;
+}
+
+/* ------------------------------------------------------- metrics / cards -- */
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.25rem;
+  margin: 0;
+}
+
+.metric {
+  background: var(--bb-card);
+  border: 1px solid var(--bb-border);
+  border-top: 4px solid var(--bb-gold);
+  border-radius: 10px;
+  padding: 1.1rem 1.25rem;
+  box-shadow: var(--bb-shadow);
+}
+
+.metric dt {
+  color: var(--bb-muted);
+  font-size: 0.9rem;
+  margin-bottom: 0.35rem;
+}
+
+.metric dd {
+  margin: 0;
+  font-size: 1.7rem;
+  font-weight: 700;
+  font-family: var(--bb-serif);
+  color: var(--bb-charcoal);
+}
+
+/* ------------------------------------------------------------- trending -- */
+
+.trending-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.trending-entry {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--bb-card);
+  border: 1px solid var(--bb-border);
+  border-radius: 10px;
+  padding: 0.85rem 1.1rem;
+  box-shadow: var(--bb-shadow);
+}
+
+.trending-rank {
+  font-family: var(--bb-serif);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--bb-gold-dark);
+  min-width: 2.5rem;
+}
+
+.trending-name {
+  font-weight: 600;
+  flex: 1;
+}
+
+.trending-units {
+  color: var(--bb-muted);
+}
+
+/* ----------------------------------------------------------- spin wheel -- */
+
+.spin-wheel {
+  text-align: center;
+}
+
+.spin-wheel-graphic {
+  font-size: 5rem;
+  margin: 1.5rem auto;
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+
+.spin-wheel-spinning {
+  animation: bb-spin 0.8s linear infinite;
+}
+
+@keyframes bb-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin-wheel-reward {
+  font-size: 1.3rem;
+  color: var(--bb-success);
+}
+
+/* -------------------------------------------------------------- wallet -- */
+
+.wallet-balance {
+  font-size: 1.3rem;
+}
+
+.wallet-notice {
+  color: var(--bb-success);
+  font-weight: 600;
+}
+
+.redemption-options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.redemption-options li {
+  background: var(--bb-card);
+  border: 1px solid var(--bb-border);
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: var(--bb-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.redemption-label {
+  font-weight: 600;
+}
+
+.redemption-cost {
+  color: var(--bb-muted);
+}
+
+/* ------------------------------------------------------------- ai chef -- */
+
+.ai-chef-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  align-items: end;
+  background: var(--bb-card);
+  border: 1px solid var(--bb-border);
+  border-radius: var(--bb-radius);
+  padding: 1.5rem;
+  box-shadow: var(--bb-shadow);
+  margin-bottom: 1.5rem;
+}
+
+.ai-chef-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.ai-chef-recommendations {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.25rem;
+}
+
+.ai-chef-recommendation {
+  background: var(--bb-card);
+  border: 1px solid var(--bb-border);
+  border-radius: 10px;
+  padding: 1.1rem;
+  box-shadow: var(--bb-shadow);
+}
+
+.ai-chef-confidence {
+  color: var(--bb-gold-dark);
+  font-weight: 700;
+}
+
+/* -------------------------------------------------------------- investor -- */
+
+.investor section {
+  background: var(--bb-card);
+  border: 1px solid var(--bb-border);
+  border-radius: var(--bb-radius);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--bb-shadow);
+}
+
+.investor-tagline {
+  font-family: var(--bb-serif);
+  font-style: italic;
+  font-size: 1.2rem;
+  color: var(--bb-gold-dark);
+}
+
+.investor-traction dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin: 0;
+}
+
+.investor-traction dd {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: var(--bb-serif);
+}
+
+/* ---------------------------------------------------------------- admin -- */
+
+.admin-header {
+  margin-bottom: 1rem;
+}
+
+.admin-note {
+  background: #fff6e0;
+  border: 1px solid #f0dca6;
+  color: #7a5c00;
+  padding: 0.5rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  display: inline-block;
+}
+
+.admin-controls {
+  display: flex;
+  align-items: end;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.admin-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.admin-orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bb-card);
+  border-radius: var(--bb-radius);
+  overflow: hidden;
+  box-shadow: var(--bb-shadow);
+}
+
+.admin-orders-table th,
+.admin-orders-table td {
+  text-align: left;
+  padding: 0.7rem 0.85rem;
+  border-bottom: 1px solid var(--bb-border);
+  font-size: 0.92rem;
+}
+
+.admin-orders-table thead th {
+  background: var(--bb-charcoal);
+  color: #fff;
+  font-family: var(--bb-serif);
+  font-weight: 600;
+}
+
+.admin-orders-table tbody tr:hover {
+  background: #fbf3e3;
+}
+
+.admin-cell-token {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-weight: 600;
+}
+
+.admin-cell-items {
+  max-width: 260px;
+}
+
+.admin-status {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: #efe7d8;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.admin-advance {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.88rem;
+}
+
+/* --------------------------------------------------------------- generic -- */
+
+[role="alert"] {
+  margin: 0.5rem 0;
+}
+
+/* Responsive: collapse the admin table into stacked rows on small screens. */
+@media (max-width: 640px) {
+  .site-nav {
+    order: 3;
+    width: 100%;
+  }
+
+  .cart-line {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-orders-table,
+  .admin-orders-table thead,
+  .admin-orders-table tbody,
+  .admin-orders-table th,
+  .admin-orders-table td,
+  .admin-orders-table tr {
+    display: block;
+  }
+
+  .admin-orders-table thead {
+    display: none;
+  }
+
+  .admin-order-row {
+    border-bottom: 2px solid var(--bb-border);
+    padding: 0.5rem 0;
+  }
+
+  .admin-orders-table td {
+    border: none;
+    padding: 0.3rem 0.85rem;
+  }
+}
