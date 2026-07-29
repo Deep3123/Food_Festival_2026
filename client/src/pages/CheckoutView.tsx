@@ -22,7 +22,7 @@ import { DEMO_STALL_ID } from "../demo.js";
 import { CustomerForm } from "./ProfileView.js";
 
 /** Replace with your real UPI ID */
-const UPI_ID = "yourupi@paytm";
+const UPI_ID = "deepp3123-3@okicici";
 const UPI_NAME = "Invest-a-Bite";
 
 type CheckoutState =
