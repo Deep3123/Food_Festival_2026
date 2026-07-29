@@ -167,17 +167,21 @@ export function CheckoutView(): JSX.Element {
     return (
       <main className="checkout">
         <div className="checkout-success-card">
-          <div className="checkout-success-icon">✅</div>
-          <h1>Payment Verified!</h1>
-          <p>Your payment has been confirmed by the admin.</p>
+          <div className="checkout-success-icon">🎉</div>
+          <h1>Payment Successful!</h1>
+          <p className="checkout-success-msg">
+            Your payment has been verified. Your order is being prepared and will be delivered to you shortly!
+          </p>
           <p className="checkout-token" data-testid="order-token">
             Order Token: <strong>{state.token}</strong>
           </p>
-          <p className="checkout-coins">+{state.coinsEarned} reward points earned!</p>
+          <p className="checkout-coins">🪙 +{state.coinsEarned} reward points earned!</p>
           <p className="checkout-redirect-notice">Redirecting to home in a few seconds…</p>
-          <button type="button" onClick={() => navigate(ROUTES.home)}>
-            Go to Home
-          </button>
+          <div className="checkout-success-actions">
+            <button type="button" onClick={() => navigate(ROUTES.home)}>
+              Go to Home
+            </button>
+          </div>
         </div>
       </main>
     );

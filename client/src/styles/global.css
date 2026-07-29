@@ -1196,3 +1196,12 @@ main {
 .checkout-coupon-tag:hover { background: rgba(255,107,53,0.2); }
 .checkout-coupon-applied { color: var(--iab-success); font-weight: 600; margin-top: 0.4rem; }
 .checkout-coupon-error { color: var(--iab-danger); font-size: 0.85rem; margin-top: 0.3rem; }
+
+/* ================================================ CHECKOUT SUCCESS MSG */
+.checkout-success-msg {
+  font-size: 1.1rem;
+  color: var(--iab-success);
+  font-weight: 600;
+  line-height: 1.5;
+  margin: 0.5rem 0 1rem;
+}
