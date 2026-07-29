@@ -62,12 +62,22 @@ export function SiteHeader(): JSX.Element {
             </NavLink>
             {isAdmin && (
               <NavLink to={ROUTES.admin} className="site-nav-link">
-                Admin
+                Orders
               </NavLink>
             )}
             {isAdmin && (
               <NavLink to={ROUTES.stock} className="site-nav-link">
                 Stock
+              </NavLink>
+            )}
+            {isAdmin && (
+              <NavLink to={ROUTES.adminCoupons} className="site-nav-link">
+                Coupons
+              </NavLink>
+            )}
+            {isAdmin && (
+              <NavLink to={ROUTES.adminPayment} className="site-nav-link">
+                Payment
               </NavLink>
             )}
           </nav>
@@ -139,12 +149,22 @@ export function SiteHeader(): JSX.Element {
           </NavLink>
           {isAdmin && (
             <NavLink to={ROUTES.admin} className="sidebar-nav-link" onClick={closeSidebar}>
-              📊 Admin
+              📊 Orders
             </NavLink>
           )}
           {isAdmin && (
             <NavLink to={ROUTES.stock} className="sidebar-nav-link" onClick={closeSidebar}>
               📦 Stock
+            </NavLink>
+          )}
+          {isAdmin && (
+            <NavLink to={ROUTES.adminCoupons} className="sidebar-nav-link" onClick={closeSidebar}>
+              🎟️ Coupons
+            </NavLink>
+          )}
+          {isAdmin && (
+            <NavLink to={ROUTES.adminPayment} className="sidebar-nav-link" onClick={closeSidebar}>
+              💳 Payment
             </NavLink>
           )}
           {!isAdmin && (

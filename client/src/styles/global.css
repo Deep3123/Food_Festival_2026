@@ -878,19 +878,19 @@ main {
   color: var(--iab-ink);
 }
 .upi-app-icon {
-  width: 2rem;
-  height: 2rem;
+  width: 2.2rem;
+  height: 2.2rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 8px;
   font-weight: 800;
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
-.upi-app-gpay .upi-app-icon { background: #4285f4; color: #fff; }
-.upi-app-phonepe .upi-app-icon { background: #5f259f; color: #fff; }
-.upi-app-paytm .upi-app-icon { background: #00baf2; color: #fff; }
-.upi-app-generic .upi-app-icon { background: var(--iab-muted); color: #fff; }
+.upi-app-gpay .upi-app-icon { background: linear-gradient(135deg, #4285f4, #34a853); color: #fff; }
+.upi-app-phonepe .upi-app-icon { background: linear-gradient(135deg, #5f259f, #7b2ff7); color: #fff; }
+.upi-app-paytm .upi-app-icon { background: linear-gradient(135deg, #00baf2, #003d6b); color: #fff; }
+.upi-app-generic .upi-app-icon { background: linear-gradient(135deg, #6b7280, #4b5563); color: #fff; }
 
 .upi-confirm-section {
   display: flex;

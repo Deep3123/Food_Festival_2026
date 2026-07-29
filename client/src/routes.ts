@@ -24,6 +24,8 @@ export const ROUTES = {
   orderHistory: "/order-history",
   admin: "/admin",
   stock: "/admin/stock",
+  adminCoupons: "/admin/coupons",
+  adminPayment: "/admin/payment",
   qrCode: "/qr",
 } as const;
 
