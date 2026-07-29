@@ -1144,3 +1144,55 @@ main {
   color: var(--iab-muted);
   margin-top: 0.5rem;
 }
+
+/* ================================================ ADMIN ENHANCEMENTS */
+.stock-card--low { border-left-color: #f59e0b; }
+.stock-low-badge {
+  background: rgba(245, 158, 11, 0.15); color: #f59e0b;
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  padding: 0.2rem 0.6rem; border-radius: 999px;
+}
+.stock-out-badge {
+  background: rgba(239, 68, 68, 0.15); color: var(--iab-danger);
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  padding: 0.2rem 0.6rem; border-radius: 999px;
+}
+.stock-card-img {
+  width: 100%; height: 80px; object-fit: cover; border-radius: 8px; margin: 0.5rem 0;
+}
+.stock-card-variants { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.5rem; }
+.stock-variant-tag {
+  background: var(--iab-primary-glow); border: 1px solid rgba(255,107,53,0.2);
+  color: var(--iab-primary-light); font-size: 0.75rem; font-weight: 600;
+  padding: 0.2rem 0.5rem; border-radius: 6px;
+}
+.stock-card-actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.stock-card-actions .stock-card-input { width: 4.5rem; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+  z-index: 500; display: flex; align-items: center; justify-content: center; padding: 1rem;
+}
+.modal-card {
+  background: var(--iab-card); border: 1px solid var(--iab-border); border-radius: var(--iab-radius);
+  padding: 2rem; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto;
+}
+.modal-card label { display: flex; flex-direction: column; gap: 0.3rem; font-weight: 600; font-size: 0.88rem; margin-bottom: 0.75rem; }
+.modal-card input { font-weight: 400; }
+.modal-actions { display: flex; gap: 0.75rem; margin-top: 1rem; }
+
+/* Coupon section on checkout */
+.checkout-coupon { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--iab-border); }
+.checkout-coupon-input { display: flex; gap: 0.5rem; align-items: center; }
+.checkout-coupon-input input { flex: 1; }
+.checkout-coupon-input button { white-space: nowrap; }
+.checkout-coupon-suggestions { margin-top: 0.75rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.checkout-coupon-tag {
+  background: var(--iab-primary-glow); border: 1px solid rgba(255,107,53,0.2);
+  color: var(--iab-primary-light); padding: 0.3rem 0.7rem; border-radius: 8px;
+  font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all var(--iab-transition);
+}
+.checkout-coupon-tag:hover { background: rgba(255,107,53,0.2); }
+.checkout-coupon-applied { color: var(--iab-success); font-weight: 600; margin-top: 0.4rem; }
+.checkout-coupon-error { color: var(--iab-danger); font-size: 0.85rem; margin-top: 0.3rem; }

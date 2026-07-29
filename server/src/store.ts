@@ -29,6 +29,8 @@ import type {
   Referral,
   Stall,
   Wallet,
+  Coupon,
+  AdminConfig,
 } from "../../types/index.js";
 import {
   JsonFilePersistence,
@@ -221,6 +223,8 @@ export class Store {
   private wallets: Map<string, Wallet> = new Map();
   private referrals: Map<string, Referral> = new Map();
   private customers: Map<string, Customer> = new Map();
+  private coupons: Map<string, Coupon> = new Map();
+  private adminConfig: AdminConfig = { upiId: "deepp3123-3@okicici", upiName: "Invest-a-Bite" };
 
   /** The seed this store was constructed with; `reset()` restores to it. */
   private readonly seed: StoreSeed | undefined;
@@ -464,6 +468,54 @@ export class Store {
   /** Insert or replace a customer keyed by its normalized mobile number. */
   saveCustomer(customer: Customer): void {
     this.customers.set(customer.mobile, deepClone(customer));
+    this.persist();
+  }
+
+  // --- Food item deletion --------------------------------------------------
+
+  /** Remove a food item by id. Returns true if the item existed. */
+  deleteFoodItem(itemId: string): boolean {
+    const existed = this.foodItems.delete(itemId);
+    if (existed) this.persist();
+    return existed;
+  }
+
+  // --- Coupons -------------------------------------------------------------
+
+  /** All coupons. */
+  getCoupons(): Coupon[] {
+    return Array.from(this.coupons.values()).map((c) => deepClone(c));
+  }
+
+  /** A single coupon by code (case-insensitive). */
+  getCoupon(code: string): Coupon | undefined {
+    const coupon = this.coupons.get(code.toUpperCase());
+    return coupon ? deepClone(coupon) : undefined;
+  }
+
+  /** Insert or replace a coupon keyed by its code (uppercased). */
+  saveCoupon(coupon: Coupon): void {
+    this.coupons.set(coupon.code.toUpperCase(), deepClone(coupon));
+    this.persist();
+  }
+
+  /** Delete a coupon by code. */
+  deleteCoupon(code: string): boolean {
+    const existed = this.coupons.delete(code.toUpperCase());
+    if (existed) this.persist();
+    return existed;
+  }
+
+  // --- Admin config --------------------------------------------------------
+
+  /** Get the admin configuration (UPI ID, etc.). */
+  getAdminConfig(): AdminConfig {
+    return deepClone(this.adminConfig);
+  }
+
+  /** Update the admin configuration. */
+  setAdminConfig(config: AdminConfig): void {
+    this.adminConfig = deepClone(config);
     this.persist();
   }
 }

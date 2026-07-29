@@ -36,6 +36,13 @@ export interface FoodItem {
   spice: Spice;
   flavor: Flavor;
   portion: Portion; // maps to hunger level
+  /** Optional variants (e.g. "With Cheese", "Without Cheese") */
+  variants?: ItemVariant[];
+}
+
+export interface ItemVariant {
+  name: string; // e.g. "With Cheese"
+  priceAddon: number; // extra cost in INR (can be 0)
 }
 
 export interface CartItem {
@@ -43,6 +50,8 @@ export interface CartItem {
   name: string;
   unitPrice: number; // INR
   quantity: number; // >= 1
+  /** Selected variant name, if any */
+  variant?: string;
 }
 
 export interface Stall {
@@ -208,3 +217,26 @@ export const PORTION_VALUES: readonly Portion[] = [
   "regular",
   "hearty",
 ] as const;
+
+// --- Coupon models ---------------------------------------------------------
+
+export interface Coupon {
+  code: string;
+  /** Discount type: percentage off or flat amount off */
+  type: "percent" | "flat";
+  /** Discount value (e.g. 10 means 10% or ₹10 depending on type) */
+  value: number;
+  /** Minimum order value required to apply this coupon */
+  minOrderValue: number;
+  /** Maximum discount cap in INR (only relevant for percent type) */
+  maxDiscount?: number;
+  /** Whether this coupon is currently active */
+  active: boolean;
+}
+
+// --- Admin configuration ---------------------------------------------------
+
+export interface AdminConfig {
+  upiId: string;
+  upiName: string;
+}

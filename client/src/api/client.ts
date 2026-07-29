@@ -299,3 +299,87 @@ export function spin(token: string): Promise<SpinResponse> {
     {}
   );
 }
+
+// --- Admin item CRUD -------------------------------------------------------
+
+/** POST /api/admin/items — create a new food item. */
+export function createAdminItem(item: Partial<FoodItem>): Promise<FoodItem> {
+  return postJson<FoodItem>("/admin/items", item);
+}
+
+/** PUT /api/admin/items/:itemId — update a food item. */
+export function updateAdminItem(itemId: string, item: Partial<FoodItem>): Promise<FoodItem> {
+  return request<FoodItem>(`/admin/items/${encodeURIComponent(itemId)}`, {
+    method: "PUT",
+    body: JSON.stringify(item),
+  });
+}
+
+/** DELETE /api/admin/items/:itemId — remove a food item. */
+export function deleteAdminItem(itemId: string): Promise<void> {
+  return request<void>(`/admin/items/${encodeURIComponent(itemId)}`, { method: "DELETE" });
+}
+
+// --- Coupon management -----------------------------------------------------
+
+export interface CouponResponse {
+  code: string;
+  type: "percent" | "flat";
+  value: number;
+  minOrderValue: number;
+  maxDiscount?: number;
+  active: boolean;
+}
+
+export interface CouponApplyResponse {
+  coupon: CouponResponse;
+  discount: number;
+  finalTotal: number;
+}
+
+/** GET /api/admin/coupons — list all coupons. */
+export function getAdminCoupons(): Promise<CouponResponse[]> {
+  return request<CouponResponse[]>("/admin/coupons");
+}
+
+/** POST /api/admin/coupons — create a coupon. */
+export function createCoupon(coupon: Partial<CouponResponse>): Promise<CouponResponse> {
+  return postJson<CouponResponse>("/admin/coupons", coupon);
+}
+
+/** DELETE /api/admin/coupons/:code — delete a coupon. */
+export function deleteCoupon(code: string): Promise<void> {
+  return request<void>(`/admin/coupons/${encodeURIComponent(code)}`, { method: "DELETE" });
+}
+
+/** GET /api/coupons/suggest?total=X — get applicable coupons for an order total. */
+export function suggestCoupons(total: number): Promise<CouponResponse[]> {
+  return request<CouponResponse[]>(`/coupons/suggest?total=${total}`);
+}
+
+/** POST /api/coupons/apply — validate and apply a coupon code. */
+export function applyCoupon(code: string, total: number): Promise<CouponApplyResponse> {
+  return postJson<CouponApplyResponse>("/coupons/apply", { code, total });
+}
+
+// --- Admin config ----------------------------------------------------------
+
+export interface PaymentConfig {
+  upiId: string;
+  upiName: string;
+}
+
+/** GET /api/admin/config — get admin configuration. */
+export function getAdminConfig(): Promise<PaymentConfig> {
+  return request<PaymentConfig>("/admin/config");
+}
+
+/** PUT /api/admin/config — update admin configuration. */
+export function updateAdminConfig(config: Partial<PaymentConfig>): Promise<PaymentConfig> {
+  return request<PaymentConfig>("/admin/config", { method: "PUT", body: JSON.stringify(config) });
+}
+
+/** GET /api/config/payment — public endpoint to get UPI config for checkout. */
+export function getPaymentConfig(): Promise<PaymentConfig> {
+  return request<PaymentConfig>("/config/payment");
+}

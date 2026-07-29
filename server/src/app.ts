@@ -33,7 +33,7 @@ import { recommend } from "../../domain/ai-chef.js";
 import { spin } from "../../domain/spin.js";
 import { normalizeMobile, isValidMobile } from "../../domain/mobile.js";
 import { MockNotificationGateway } from "./notifications/mock-notification-gateway.js";
-import type { Preferences, Referral } from "../../types/index.js";
+import type { Preferences, Referral, Coupon, AdminConfig } from "../../types/index.js";
 
 /** Collaborators required to build the app. */
 export interface AppDependencies {
@@ -720,70 +720,193 @@ export function createApp(deps: AppDependencies): Express {
   });
 
   // --- POST /api/orders/:token/spin ---------------------------------------
-  //
-  // Performs the single Spin & Win draw for a paid order. Spins are only
-  // available for paid orders (unpaid orders are rejected with 403); the first
-  // spin on a paid order succeeds, draws a reward via the spin domain using the
-  // injected rng, applies the reward's effect to the customer's account, and
-  // marks the order's single spin used. Any further spin attempt on the same
-  // order is rejected with 409 (Requirements 13.1, 13.3, 13.4).
-  //
-  // Reward effects applied to the account:
-  //   - "double FoodCoins": doubles the customer's current FoodCoins balance.
-  //   - "5% discount" / "free drink" / "lucky draw ticket": recorded on the
-  //     order via `spinReward`; the wallet balance is unaffected.
-  //
-  // Validates: Requirements 13.1, 13.3, 13.4
   app.post("/api/orders/:token/spin", (req: Request, res: Response): void => {
     const { token } = req.params;
     const order = store.getOrder(token);
     if (!order) {
-      const errBody: ApiError = {
-        error: "Order not found",
-        code: "ORDER_NOT_FOUND",
-      };
+      const errBody: ApiError = { error: "Order not found", code: "ORDER_NOT_FOUND" };
       res.status(404).json(errBody);
       return;
     }
-
-    // Unpaid orders cannot spin (Req 13.1).
     if (!order.paid) {
-      const errBody: ApiError = {
-        error: "Spin is only available for paid orders",
-        code: "ORDER_NOT_PAID",
-      };
+      const errBody: ApiError = { error: "Spin is only available for paid orders", code: "ORDER_NOT_PAID" };
       res.status(403).json(errBody);
       return;
     }
-
-    // Exactly one spin per paid order (Req 13.4).
     if (order.spinUsed) {
-      const errBody: ApiError = {
-        error: "This order's spin has already been used",
-        code: "SPIN_ALREADY_USED",
-      };
+      const errBody: ApiError = { error: "This order's spin has already been used", code: "SPIN_ALREADY_USED" };
       res.status(409).json(errBody);
       return;
     }
-
-    // Draw the reward and apply its effect to the account (Req 13.3).
     const reward = spin(rng);
     const wallet = store.getWallet(order.customerId);
     if (reward === "double FoodCoins") {
       wallet.foodCoins *= 2;
       store.saveWallet(wallet);
     }
-
     order.spinUsed = true;
     order.spinReward = reward;
     store.saveOrder(order);
+    res.status(200).json({ token: order.token, reward, spinUsed: order.spinUsed, balance: store.getWallet(order.customerId).foodCoins });
+  });
 
-    res.status(200).json({
-      token: order.token,
-      reward,
-      spinUsed: order.spinUsed,
-      balance: store.getWallet(order.customerId).foodCoins,
-    });
+  // --- POST /api/admin/items — Create a new food item ---------------------
+  app.post("/api/admin/items", (req: Request, res: Response): void => {
+    const body = req.body as Partial<import("../../types/index.js").FoodItem>;
+    if (!body.name || !body.price || !body.stallId) {
+      const errBody: ApiError = { error: "name, price, and stallId are required", code: "INVALID_ITEM" };
+      res.status(400).json(errBody);
+      return;
+    }
+    const id = `item-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const item: import("../../types/index.js").FoodItem = {
+      id,
+      name: body.name,
+      imageUrl: body.imageUrl ?? "",
+      description: body.description ?? "",
+      rating: body.rating ?? 4.0,
+      availableQuantity: body.availableQuantity ?? 50,
+      price: body.price,
+      stallId: body.stallId,
+      spice: body.spice ?? "medium",
+      flavor: body.flavor ?? "savory",
+      portion: body.portion ?? "regular",
+      variants: body.variants,
+    };
+    store.upsertFoodItem(item);
+    res.status(201).json(item);
+  });
+
+  // --- PUT /api/admin/items/:itemId — Update a food item fully ------------
+  app.put("/api/admin/items/:itemId", (req: Request, res: Response): void => {
+    const { itemId } = req.params;
+    const existing = store.getFoodItem(itemId);
+    if (!existing) {
+      const errBody: ApiError = { error: "Item not found", code: "ITEM_NOT_FOUND" };
+      res.status(404).json(errBody);
+      return;
+    }
+    const body = req.body as Partial<import("../../types/index.js").FoodItem>;
+    const updated: import("../../types/index.js").FoodItem = {
+      ...existing,
+      name: body.name ?? existing.name,
+      imageUrl: body.imageUrl ?? existing.imageUrl,
+      description: body.description ?? existing.description,
+      rating: body.rating ?? existing.rating,
+      availableQuantity: body.availableQuantity ?? existing.availableQuantity,
+      price: body.price ?? existing.price,
+      spice: body.spice ?? existing.spice,
+      flavor: body.flavor ?? existing.flavor,
+      portion: body.portion ?? existing.portion,
+      variants: body.variants !== undefined ? body.variants : existing.variants,
+    };
+    store.upsertFoodItem(updated);
+    res.status(200).json(updated);
+  });
+
+  // --- DELETE /api/admin/items/:itemId — Remove a food item ---------------
+  app.delete("/api/admin/items/:itemId", (req: Request, res: Response): void => {
+    const { itemId } = req.params;
+    const deleted = store.deleteFoodItem(itemId);
+    if (!deleted) {
+      const errBody: ApiError = { error: "Item not found", code: "ITEM_NOT_FOUND" };
+      res.status(404).json(errBody);
+      return;
+    }
+    res.status(204).end();
+  });
+
+  // --- Coupon management ---------------------------------------------------
+
+  // GET /api/admin/coupons
+  app.get("/api/admin/coupons", (_req: Request, res: Response): void => {
+    res.status(200).json(store.getCoupons());
+  });
+
+  // POST /api/admin/coupons — create a coupon
+  app.post("/api/admin/coupons", (req: Request, res: Response): void => {
+    const body = req.body as Partial<Coupon>;
+    if (!body.code || !body.type || body.value === undefined || body.minOrderValue === undefined) {
+      const errBody: ApiError = { error: "code, type, value, and minOrderValue are required", code: "INVALID_COUPON" };
+      res.status(400).json(errBody);
+      return;
+    }
+    const coupon: Coupon = {
+      code: body.code.toUpperCase(),
+      type: body.type,
+      value: body.value,
+      minOrderValue: body.minOrderValue,
+      maxDiscount: body.maxDiscount,
+      active: body.active !== false,
+    };
+    store.saveCoupon(coupon);
+    res.status(201).json(coupon);
+  });
+
+  // DELETE /api/admin/coupons/:code
+  app.delete("/api/admin/coupons/:code", (req: Request, res: Response): void => {
+    const deleted = store.deleteCoupon(req.params.code);
+    if (!deleted) {
+      const errBody: ApiError = { error: "Coupon not found", code: "COUPON_NOT_FOUND" };
+      res.status(404).json(errBody);
+      return;
+    }
+    res.status(204).end();
+  });
+
+  // GET /api/coupons/suggest?total=X — suggest applicable coupons for user
+  app.get("/api/coupons/suggest", (req: Request, res: Response): void => {
+    const total = Number(req.query.total ?? 0);
+    const coupons = store.getCoupons().filter((c) => c.active && total >= c.minOrderValue);
+    res.status(200).json(coupons);
+  });
+
+  // POST /api/coupons/apply — validate and calculate discount for a coupon
+  app.post("/api/coupons/apply", (req: Request, res: Response): void => {
+    const body = req.body as { code?: string; total?: number };
+    const code = typeof body.code === "string" ? body.code : "";
+    const total = typeof body.total === "number" ? body.total : 0;
+    const coupon = store.getCoupon(code);
+    if (!coupon || !coupon.active) {
+      const errBody: ApiError = { error: "Invalid or expired coupon", code: "INVALID_COUPON" };
+      res.status(400).json(errBody);
+      return;
+    }
+    if (total < coupon.minOrderValue) {
+      const errBody: ApiError = { error: `Minimum order value is ₹${coupon.minOrderValue}`, code: "MIN_ORDER_NOT_MET" };
+      res.status(400).json(errBody);
+      return;
+    }
+    let discount = coupon.type === "percent" ? (total * coupon.value) / 100 : coupon.value;
+    if (coupon.type === "percent" && coupon.maxDiscount) {
+      discount = Math.min(discount, coupon.maxDiscount);
+    }
+    discount = Math.min(discount, total);
+    res.status(200).json({ coupon, discount, finalTotal: total - discount });
+  });
+
+  // --- Admin config (UPI ID) -----------------------------------------------
+
+  // GET /api/admin/config
+  app.get("/api/admin/config", (_req: Request, res: Response): void => {
+    res.status(200).json(store.getAdminConfig());
+  });
+
+  // PUT /api/admin/config
+  app.put("/api/admin/config", (req: Request, res: Response): void => {
+    const body = req.body as Partial<AdminConfig>;
+    const current = store.getAdminConfig();
+    const updated: AdminConfig = {
+      upiId: typeof body.upiId === "string" && body.upiId ? body.upiId : current.upiId,
+      upiName: typeof body.upiName === "string" && body.upiName ? body.upiName : current.upiName,
+    };
+    store.setAdminConfig(updated);
+    res.status(200).json(updated);
+  });
+
+  // GET /api/config/payment — public endpoint for client to get UPI details
+  app.get("/api/config/payment", (_req: Request, res: Response): void => {
+    res.status(200).json(store.getAdminConfig());
   });
 
   return app;

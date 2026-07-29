@@ -10,8 +10,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ApiClientError, checkout, getOrder, getWallet } from "../api/client.js";
-import type { CheckoutResponse, OrderResponse } from "../api/client.js";
+import { ApiClientError, checkout, getOrder, getWallet, getPaymentConfig, suggestCoupons, applyCoupon } from "../api/client.js";
+import type { CheckoutResponse, OrderResponse, CouponResponse, PaymentConfig } from "../api/client.js";
 import { useCart } from "../cart/CartContext.js";
 import { useCustomer } from "../customer/CustomerContext.js";
 import { toCartItems } from "../cart/cart.js";
@@ -20,9 +20,9 @@ import { formatINR } from "../format.js";
 import { DEMO_STALL_ID } from "../demo.js";
 import { CustomerForm } from "./ProfileView.js";
 
-/** Replace with your real UPI ID */
-const UPI_ID = "deepp3123-3@okicici";
-const UPI_NAME = "Invest-a-Bite";
+/** Fallback UPI details if config fetch fails */
+const DEFAULT_UPI_ID = "deepp3123-3@okicici";
+const DEFAULT_UPI_NAME = "Invest-a-Bite";
 
 type CheckoutState =
   | { status: "idle" }
@@ -32,20 +32,20 @@ type CheckoutState =
   | { status: "failed"; message: string };
 
 /** Generate a UPI intent URL */
-function buildUpiUrl(amount: number, txnNote: string): string {
-  const params = new URLSearchParams({ pa: UPI_ID, pn: UPI_NAME, am: amount.toFixed(2), cu: "INR", tn: txnNote });
+function buildUpiUrl(upiId: string, upiName: string, amount: number, txnNote: string): string {
+  const params = new URLSearchParams({ pa: upiId, pn: upiName, am: amount.toFixed(2), cu: "INR", tn: txnNote });
   return `upi://pay?${params.toString()}`;
 }
-function buildGPayUrl(amount: number, txnNote: string): string {
-  const params = new URLSearchParams({ pa: UPI_ID, pn: UPI_NAME, am: amount.toFixed(2), cu: "INR", tn: txnNote });
+function buildGPayUrl(upiId: string, upiName: string, amount: number, txnNote: string): string {
+  const params = new URLSearchParams({ pa: upiId, pn: upiName, am: amount.toFixed(2), cu: "INR", tn: txnNote });
   return `tez://upi/pay?${params.toString()}`;
 }
-function buildPhonePeUrl(amount: number, txnNote: string): string {
-  const params = new URLSearchParams({ pa: UPI_ID, pn: UPI_NAME, am: amount.toFixed(2), cu: "INR", tn: txnNote });
+function buildPhonePeUrl(upiId: string, upiName: string, amount: number, txnNote: string): string {
+  const params = new URLSearchParams({ pa: upiId, pn: upiName, am: amount.toFixed(2), cu: "INR", tn: txnNote });
   return `phonepe://pay?${params.toString()}`;
 }
-function buildPaytmUrl(amount: number, txnNote: string): string {
-  const params = new URLSearchParams({ pa: UPI_ID, pn: UPI_NAME, am: amount.toFixed(2), cu: "INR", tn: txnNote });
+function buildPaytmUrl(upiId: string, upiName: string, amount: number, txnNote: string): string {
+  const params = new URLSearchParams({ pa: upiId, pn: upiName, am: amount.toFixed(2), cu: "INR", tn: txnNote });
   return `paytmmp://pay?${params.toString()}`;
 }
 function buildQrUrl(upiUrl: string, size = 220): string {
@@ -59,6 +59,16 @@ export function CheckoutView(): JSX.Element {
   const [state, setState] = useState<CheckoutState>({ status: "idle" });
   const [rewardBalance, setRewardBalance] = useState(0);
   const [useRewards, setUseRewards] = useState(false);
+  const [payConfig, setPayConfig] = useState<PaymentConfig>({ upiId: DEFAULT_UPI_ID, upiName: DEFAULT_UPI_NAME });
+  const [suggestedCoupons, setSuggestedCoupons] = useState<CouponResponse[]>([]);
+  const [couponCode, setCouponCode] = useState("");
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponError, setCouponError] = useState("");
+
+  // Fetch payment config
+  useEffect(() => {
+    getPaymentConfig().then(setPayConfig).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!customer) return;
@@ -70,12 +80,33 @@ export function CheckoutView(): JSX.Element {
   const maxDiscount = Math.min(rewardBalance * 0.50, total);
   const pointsToUse = Math.ceil(maxDiscount * 2);
   const discount = useRewards ? maxDiscount : 0;
-  const amountToPay = total - discount;
+  const amountToPay = Math.max(0, total - discount - couponDiscount);
 
-  const upiUrl = buildUpiUrl(amountToPay, `Order at ${UPI_NAME}`);
-  const gpayUrl = buildGPayUrl(amountToPay, `Order at ${UPI_NAME}`);
-  const phonePeUrl = buildPhonePeUrl(amountToPay, `Order at ${UPI_NAME}`);
-  const paytmUrl = buildPaytmUrl(amountToPay, `Order at ${UPI_NAME}`);
+  // Suggest coupons when total changes
+  useEffect(() => {
+    if (total > 0) {
+      suggestCoupons(total).then(setSuggestedCoupons).catch(() => setSuggestedCoupons([]));
+    }
+  }, [total]);
+
+  async function handleApplyCoupon(): Promise<void> {
+    if (!couponCode) return;
+    setCouponError("");
+    try {
+      const result = await applyCoupon(couponCode, total - discount);
+      setCouponDiscount(result.discount);
+    } catch (err: unknown) {
+      setCouponDiscount(0);
+      setCouponError(err instanceof ApiClientError ? err.message : "Invalid coupon");
+    }
+  }
+
+  const upiId = payConfig.upiId;
+  const upiName = payConfig.upiName;
+  const upiUrl = buildUpiUrl(upiId, upiName, amountToPay, `Order at ${upiName}`);
+  const gpayUrl = buildGPayUrl(upiId, upiName, amountToPay, `Order at ${upiName}`);
+  const phonePeUrl = buildPhonePeUrl(upiId, upiName, amountToPay, `Order at ${upiName}`);
+  const paytmUrl = buildPaytmUrl(upiId, upiName, amountToPay, `Order at ${upiName}`);
   const qrImageUrl = buildQrUrl(upiUrl);
 
   // Place the order and move to "waiting" state
@@ -155,10 +186,10 @@ export function CheckoutView(): JSX.Element {
   // --- WAITING FOR ADMIN APPROVAL ---
   if (state.status === "waiting-approval") {
     const paidAmount = state.amount;
-    const paidUpiUrl = buildUpiUrl(paidAmount, `Order at ${UPI_NAME}`);
-    const paidGpayUrl = buildGPayUrl(paidAmount, `Order at ${UPI_NAME}`);
-    const paidPhonePeUrl = buildPhonePeUrl(paidAmount, `Order at ${UPI_NAME}`);
-    const paidPaytmUrl = buildPaytmUrl(paidAmount, `Order at ${UPI_NAME}`);
+    const paidUpiUrl = buildUpiUrl(upiId, upiName, paidAmount, `Order at ${upiName}`);
+    const paidGpayUrl = buildGPayUrl(upiId, upiName, paidAmount, `Order at ${upiName}`);
+    const paidPhonePeUrl = buildPhonePeUrl(upiId, upiName, paidAmount, `Order at ${upiName}`);
+    const paidPaytmUrl = buildPaytmUrl(upiId, upiName, paidAmount, `Order at ${upiName}`);
     const paidQrUrl = buildQrUrl(paidUpiUrl);
 
     return (
@@ -266,6 +297,29 @@ export function CheckoutView(): JSX.Element {
             Amount to pay: <strong>{formatINR(amountToPay)}</strong>
           </p>
         )}
+
+        <div className="checkout-coupon">
+          <div className="checkout-coupon-input">
+            <input
+              type="text"
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+              placeholder="Enter coupon code"
+            />
+            <button type="button" onClick={() => void handleApplyCoupon()}>Apply</button>
+          </div>
+          {couponError && <p className="checkout-coupon-error">{couponError}</p>}
+          {couponDiscount > 0 && <p className="checkout-coupon-applied">Coupon applied: −{formatINR(couponDiscount)}</p>}
+          {suggestedCoupons.length > 0 && couponDiscount === 0 && (
+            <div className="checkout-coupon-suggestions">
+              {suggestedCoupons.map((c) => (
+                <span key={c.code} className="checkout-coupon-tag" onClick={() => setCouponCode(c.code)}>
+                  {c.code} ({c.type === "percent" ? `${c.value}%` : `₹${c.value}`} off)
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <p className="checkout-customer" data-testid="checkout-customer">
