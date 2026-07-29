@@ -44,6 +44,7 @@ import { ProfileView } from "./pages/ProfileView.js";
 import { AdminOrdersView } from "./pages/AdminOrdersView.js";
 import { OrderHistoryView } from "./pages/OrderHistoryView.js";
 import { StockManagementView } from "./pages/StockManagementView.js";
+import { QRCodeView } from "./pages/QRCodeView.js";
 
 export function App(): JSX.Element {
   return (
@@ -68,6 +69,7 @@ export function App(): JSX.Element {
           <Route path={ROUTES.orderHistory} element={<OrderHistoryView />} />
           <Route path={ROUTES.admin} element={<AdminOrdersView />} />
           <Route path={ROUTES.stock} element={<StockManagementView />} />
+          <Route path={ROUTES.qrCode} element={<QRCodeView />} />
         </Routes>
       </CartProvider>
     </CustomerProvider>

@@ -24,6 +24,7 @@ export const ROUTES = {
   orderHistory: "/order-history",
   admin: "/admin",
   stock: "/admin/stock",
+  qrCode: "/qr",
 } as const;
 
 /** Build the marketplace menu path for a specific stall. */

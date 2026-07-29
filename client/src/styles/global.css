@@ -1108,3 +1108,39 @@ main {
   .sticky-cart-bar { padding: 0.75rem 1rem; }
   .sticky-cart-btn { padding: 0.7rem 1.2rem; font-size: 0.88rem; }
 }
+
+/* =============================================== UPI WAITING / APPROVAL */
+.upi-waiting-section {
+  text-align: center;
+  padding: 1.5rem 0 0.5rem;
+  border-top: 1px solid var(--iab-border);
+  margin-top: 1.5rem;
+}
+
+.upi-waiting-spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 3px solid var(--iab-border);
+  border-top: 3px solid var(--iab-primary);
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+  animation: iab-spin 1s linear infinite;
+}
+
+.upi-waiting-text {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--iab-primary-light);
+  margin-bottom: 0.4rem;
+}
+
+.upi-waiting-hint {
+  font-size: 0.85rem;
+  color: var(--iab-muted);
+}
+
+.checkout-redirect-notice {
+  font-size: 0.9rem;
+  color: var(--iab-muted);
+  margin-top: 0.5rem;
+}

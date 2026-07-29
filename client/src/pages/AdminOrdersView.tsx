@@ -196,7 +196,11 @@ function AdminOrdersPanel(): JSX.Element {
                     onClick={() => void handleAdvance(order.token)}
                     disabled={busy}
                   >
-                    {busy ? "Advancing…" : "Advance Status →"}
+                    {busy
+                      ? "Processing…"
+                      : order.status === "Craving Funded"
+                        ? "✓ Approve Payment"
+                        : "Advance Status →"}
                   </button>
                 )}
               </div>

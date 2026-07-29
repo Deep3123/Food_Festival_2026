@@ -1,21 +1,20 @@
 /**
- * CheckoutView — UPI payment with QR code and app intent links.
+ * CheckoutView — UPI payment with QR code + admin approval flow.
  *
  * Flow:
- * 1. Shows order summary with optional reward points redemption
- * 2. Shows UPI payment options (QR code + direct app links)
- * 3. User pays via their UPI app, then confirms "I've completed payment"
- * 4. Backend processes the order (mock gateway confirms automatically)
+ * 1. User sees order summary, clicks "Pay with UPI"
+ * 2. Order is created, user sees QR/app links + "Waiting for admin verification"
+ * 3. Admin verifies payment received, advances the order
+ * 4. User's polling detects status change → shows success → redirects to home
  */
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ApiClientError, checkout, getWallet } from "../api/client.js";
-import type { CheckoutResponse } from "../api/client.js";
+import { ApiClientError, checkout, getOrder, getWallet } from "../api/client.js";
+import type { CheckoutResponse, OrderResponse } from "../api/client.js";
 import { useCart } from "../cart/CartContext.js";
 import { useCustomer } from "../customer/CustomerContext.js";
 import { toCartItems } from "../cart/cart.js";
-import { orderPath } from "../routes.js";
 import { ROUTES } from "../routes.js";
 import { formatINR } from "../format.js";
 import { DEMO_STALL_ID } from "../demo.js";
@@ -27,59 +26,29 @@ const UPI_NAME = "Invest-a-Bite";
 
 type CheckoutState =
   | { status: "idle" }
-  | { status: "upi-pending" }
-  | { status: "confirming" }
-  | { status: "success"; result: CheckoutResponse; mobile: string }
+  | { status: "processing" }
+  | { status: "waiting-approval"; token: string; coinsEarned: number }
+  | { status: "approved"; token: string; coinsEarned: number }
   | { status: "failed"; message: string };
 
 /** Generate a UPI intent URL */
 function buildUpiUrl(amount: number, txnNote: string): string {
-  const params = new URLSearchParams({
-    pa: UPI_ID,
-    pn: UPI_NAME,
-    am: amount.toFixed(2),
-    cu: "INR",
-    tn: txnNote,
-  });
+  const params = new URLSearchParams({ pa: UPI_ID, pn: UPI_NAME, am: amount.toFixed(2), cu: "INR", tn: txnNote });
   return `upi://pay?${params.toString()}`;
 }
-
-/** App-specific deep links */
 function buildGPayUrl(amount: number, txnNote: string): string {
-  const params = new URLSearchParams({
-    pa: UPI_ID,
-    pn: UPI_NAME,
-    am: amount.toFixed(2),
-    cu: "INR",
-    tn: txnNote,
-  });
+  const params = new URLSearchParams({ pa: UPI_ID, pn: UPI_NAME, am: amount.toFixed(2), cu: "INR", tn: txnNote });
   return `tez://upi/pay?${params.toString()}`;
 }
-
 function buildPhonePeUrl(amount: number, txnNote: string): string {
-  const params = new URLSearchParams({
-    pa: UPI_ID,
-    pn: UPI_NAME,
-    am: amount.toFixed(2),
-    cu: "INR",
-    tn: txnNote,
-  });
+  const params = new URLSearchParams({ pa: UPI_ID, pn: UPI_NAME, am: amount.toFixed(2), cu: "INR", tn: txnNote });
   return `phonepe://pay?${params.toString()}`;
 }
-
 function buildPaytmUrl(amount: number, txnNote: string): string {
-  const params = new URLSearchParams({
-    pa: UPI_ID,
-    pn: UPI_NAME,
-    am: amount.toFixed(2),
-    cu: "INR",
-    tn: txnNote,
-  });
+  const params = new URLSearchParams({ pa: UPI_ID, pn: UPI_NAME, am: amount.toFixed(2), cu: "INR", tn: txnNote });
   return `paytmmp://pay?${params.toString()}`;
 }
-
-/** Generate QR code image URL via a free QR API */
-function buildQrUrl(upiUrl: string, size = 250): string {
+function buildQrUrl(upiUrl: string, size = 220): string {
   return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(upiUrl)}`;
 }
 
@@ -91,7 +60,6 @@ export function CheckoutView(): JSX.Element {
   const [rewardBalance, setRewardBalance] = useState(0);
   const [useRewards, setUseRewards] = useState(false);
 
-  // Fetch the user's reward points balance
   useEffect(() => {
     if (!customer) return;
     getWallet(customer.mobile)
@@ -99,7 +67,6 @@ export function CheckoutView(): JSX.Element {
       .catch(() => setRewardBalance(0));
   }, [customer]);
 
-  // Calculate discount
   const maxDiscount = Math.min(rewardBalance * 0.50, total);
   const pointsToUse = Math.ceil(maxDiscount * 2);
   const discount = useRewards ? maxDiscount : 0;
@@ -111,13 +78,10 @@ export function CheckoutView(): JSX.Element {
   const paytmUrl = buildPaytmUrl(amountToPay, `Order at ${UPI_NAME}`);
   const qrImageUrl = buildQrUrl(upiUrl);
 
-  function handleProceedToPayment(): void {
-    setState({ status: "upi-pending" });
-  }
-
-  async function handleConfirmPayment(): Promise<void> {
+  // Place the order and move to "waiting" state
+  async function handlePayWithUPI(): Promise<void> {
     if (!customer) return;
-    setState({ status: "confirming" });
+    setState({ status: "processing" });
     try {
       const result = await checkout({
         stallId: DEMO_STALL_ID,
@@ -126,60 +90,109 @@ export function CheckoutView(): JSX.Element {
         redeemPoints: useRewards ? pointsToUse : undefined,
       });
       clearCart();
-      setState({ status: "success", result, mobile: customer.mobile });
+      setState({ status: "waiting-approval", token: result.token, coinsEarned: result.coinsEarned });
     } catch (err: unknown) {
-      let message: string;
-      if (err instanceof ApiClientError) {
-        if (err.code === "PAYMENT_FAILED") {
-          message = "Payment failed. Your cart is safe — please try again.";
-        } else if (
-          err.code === "INSUFFICIENT_STOCK" ||
-          err.code === "ITEM_UNAVAILABLE"
-        ) {
-          message = err.message;
-        } else {
-          message = err.message;
-        }
-      } else {
-        message =
-          err instanceof Error
-            ? err.message
-            : "Payment failed. Your cart is safe — please try again.";
-      }
+      const message = err instanceof ApiClientError ? err.message : "Something went wrong. Please try again.";
       setState({ status: "failed", message });
     }
   }
 
-  // --- SUCCESS STATE ---
-  if (state.status === "success") {
-    const { token, coinsEarned, notified, discount: appliedDiscount } = state.result;
+  // Poll for admin approval (status change from "Craving Funded")
+  const pollForApproval = useCallback(async (token: string) => {
+    try {
+      const order: OrderResponse = await getOrder(token);
+      if (order.status !== "Craving Funded") {
+        return true; // approved!
+      }
+    } catch { /* ignore polling errors */ }
+    return false;
+  }, []);
+
+  useEffect(() => {
+    if (state.status !== "waiting-approval") return;
+    const { token, coinsEarned } = state;
+    let cancelled = false;
+
+    const interval = setInterval(async () => {
+      const approved = await pollForApproval(token);
+      if (approved && !cancelled) {
+        setState({ status: "approved", token, coinsEarned });
+      }
+    }, 3000); // poll every 3 seconds
+
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [state, pollForApproval]);
+
+  // Auto-redirect after approval
+  useEffect(() => {
+    if (state.status !== "approved") return;
+    const timer = setTimeout(() => navigate(ROUTES.home), 4000);
+    return () => clearTimeout(timer);
+  }, [state.status, navigate]);
+
+  // --- APPROVED STATE ---
+  if (state.status === "approved") {
     return (
       <main className="checkout">
         <div className="checkout-success-card">
           <div className="checkout-success-icon">✅</div>
-          <h1>Payment Successful!</h1>
-          <p className="checkout-token-label">Your order token:</p>
+          <h1>Payment Verified!</h1>
+          <p>Your payment has been confirmed by the admin.</p>
           <p className="checkout-token" data-testid="order-token">
-            <strong>{token}</strong>
+            Order Token: <strong>{state.token}</strong>
           </p>
-          <p className="checkout-coins">+{coinsEarned} reward points earned!</p>
-          {appliedDiscount > 0 && (
-            <p className="checkout-discount-applied">
-              Discount applied: {formatINR(appliedDiscount)}
-            </p>
-          )}
-          {notified && (
-            <p className="checkout-notified" data-testid="checkout-notified">
-              Confirmation sent to {state.mobile} on WhatsApp.
-            </p>
-          )}
-          <div className="checkout-success-actions">
-            <Link className="checkout-track-link" to={orderPath(token)}>
-              Track Order
-            </Link>
-            <button type="button" onClick={() => navigate(ROUTES.orderHistory)}>
-              View All Orders
-            </button>
+          <p className="checkout-coins">+{state.coinsEarned} reward points earned!</p>
+          <p className="checkout-redirect-notice">Redirecting to home in a few seconds…</p>
+          <button type="button" onClick={() => navigate(ROUTES.home)}>
+            Go to Home
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  // --- WAITING FOR ADMIN APPROVAL ---
+  if (state.status === "waiting-approval") {
+    return (
+      <main className="checkout">
+        <h1>Complete Payment</h1>
+
+        <div className="upi-payment-card">
+          <div className="upi-amount-display">
+            <span className="upi-amount-label">Amount to Pay</span>
+            <span className="upi-amount-value">{formatINR(amountToPay)}</span>
+          </div>
+
+          <div className="upi-qr-section">
+            <p className="upi-qr-title">Scan QR Code</p>
+            <img className="upi-qr-image" src={qrImageUrl} alt={`UPI QR code for ${formatINR(amountToPay)}`} width={220} height={220} />
+            <p className="upi-qr-hint">Open any UPI app and scan this code</p>
+          </div>
+
+          <div className="upi-divider"><span>OR</span></div>
+
+          <div className="upi-apps-section">
+            <p className="upi-apps-title">Pay using UPI App</p>
+            <div className="upi-apps-grid">
+              <a href={gpayUrl} className="upi-app-btn upi-app-gpay">
+                <span className="upi-app-icon">G</span><span>Google Pay</span>
+              </a>
+              <a href={phonePeUrl} className="upi-app-btn upi-app-phonepe">
+                <span className="upi-app-icon">P</span><span>PhonePe</span>
+              </a>
+              <a href={paytmUrl} className="upi-app-btn upi-app-paytm">
+                <span className="upi-app-icon">₹</span><span>Paytm</span>
+              </a>
+              <a href={upiUrl} className="upi-app-btn upi-app-generic">
+                <span className="upi-app-icon">⋯</span><span>Other UPI</span>
+              </a>
+            </div>
+          </div>
+
+          <div className="upi-waiting-section">
+            <div className="upi-waiting-spinner"></div>
+            <p className="upi-waiting-text">Waiting for payment verification by admin…</p>
+            <p className="upi-waiting-hint">Pay using the QR code or app links above. The admin will verify your payment.</p>
           </div>
         </div>
       </main>
@@ -187,7 +200,7 @@ export function CheckoutView(): JSX.Element {
   }
 
   // --- EMPTY CART ---
-  if (cart.length === 0) {
+  if (cart.length === 0 && state.status === "idle") {
     return (
       <main className="checkout">
         <h1>Checkout</h1>
@@ -216,90 +229,6 @@ export function CheckoutView(): JSX.Element {
     );
   }
 
-  // --- UPI PAYMENT SCREEN ---
-  if (state.status === "upi-pending" || state.status === "confirming") {
-    return (
-      <main className="checkout">
-        <h1>Complete Payment</h1>
-
-        <div className="upi-payment-card">
-          <div className="upi-amount-display">
-            <span className="upi-amount-label">Amount to Pay</span>
-            <span className="upi-amount-value">{formatINR(amountToPay)}</span>
-          </div>
-
-          <div className="upi-qr-section">
-            <p className="upi-qr-title">Scan QR Code</p>
-            <img
-              className="upi-qr-image"
-              src={qrImageUrl}
-              alt={`UPI QR code for ${formatINR(amountToPay)}`}
-              width={220}
-              height={220}
-            />
-            <p className="upi-qr-hint">Open any UPI app and scan this code</p>
-          </div>
-
-          <div className="upi-divider">
-            <span>OR</span>
-          </div>
-
-          <div className="upi-apps-section">
-            <p className="upi-apps-title">Pay using UPI App</p>
-            <div className="upi-apps-grid">
-              <a href={gpayUrl} className="upi-app-btn upi-app-gpay">
-                <span className="upi-app-icon">G</span>
-                <span>Google Pay</span>
-              </a>
-              <a href={phonePeUrl} className="upi-app-btn upi-app-phonepe">
-                <span className="upi-app-icon">P</span>
-                <span>PhonePe</span>
-              </a>
-              <a href={paytmUrl} className="upi-app-btn upi-app-paytm">
-                <span className="upi-app-icon">₹</span>
-                <span>Paytm</span>
-              </a>
-              <a href={upiUrl} className="upi-app-btn upi-app-generic">
-                <span className="upi-app-icon">⋯</span>
-                <span>Other UPI</span>
-              </a>
-            </div>
-          </div>
-
-          <div className="upi-confirm-section">
-            {state.status === "confirming" ? (
-              <button type="button" disabled className="upi-confirm-btn">
-                Verifying payment…
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="upi-confirm-btn"
-                onClick={() => void handleConfirmPayment()}
-              >
-                ✓ I've Completed the Payment
-              </button>
-            )}
-            <button
-              type="button"
-              className="upi-cancel-btn"
-              onClick={() => setState({ status: "idle" })}
-              disabled={state.status === "confirming"}
-            >
-              ← Go Back
-            </button>
-          </div>
-        </div>
-
-        {state.status === "failed" && (
-          <p role="alert" className="checkout-error" data-testid="payment-error">
-            Payment verification failed. Please try again.
-          </p>
-        )}
-      </main>
-    );
-  }
-
   // --- DEFAULT: ORDER SUMMARY ---
   return (
     <main className="checkout">
@@ -313,14 +242,8 @@ export function CheckoutView(): JSX.Element {
         {rewardBalance > 0 && (
           <div className="checkout-rewards" data-testid="checkout-rewards">
             <label className="checkout-rewards-toggle">
-              <input
-                type="checkbox"
-                checked={useRewards}
-                onChange={(e) => setUseRewards(e.target.checked)}
-              />
-              <span>
-                Use reward points ({rewardBalance} pts = {formatINR(rewardBalance * 0.50)})
-              </span>
+              <input type="checkbox" checked={useRewards} onChange={(e) => setUseRewards(e.target.checked)} />
+              <span>Use reward points ({rewardBalance} pts = {formatINR(rewardBalance * 0.50)})</span>
             </label>
             {useRewards && (
               <p className="checkout-discount">
@@ -350,9 +273,10 @@ export function CheckoutView(): JSX.Element {
       <button
         type="button"
         className="checkout-pay"
-        onClick={handleProceedToPayment}
+        onClick={() => void handlePayWithUPI()}
+        disabled={state.status === "processing"}
       >
-        Pay {formatINR(amountToPay)} with UPI
+        {state.status === "processing" ? "Placing order…" : `Pay ${formatINR(amountToPay)} with UPI`}
       </button>
     </main>
   );
