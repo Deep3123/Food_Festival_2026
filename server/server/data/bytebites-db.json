@@ -343,6 +343,38 @@
       "customerId": "7528964393",
       "createdAt": "2026-07-28T11:08:43.635Z",
       "spinUsed": false
+    },
+    {
+      "token": "A-0017",
+      "stallId": "stall-tandoori",
+      "items": [
+        {
+          "itemId": "item-jamun-shots",
+          "name": "Jamun Shots",
+          "unitPrice": 30,
+          "quantity": 4
+        },
+        {
+          "itemId": "item-kiwi-shots",
+          "name": "Kiwi Shots",
+          "unitPrice": 35,
+          "quantity": 5
+        },
+        {
+          "itemId": "item-corn-chat",
+          "name": "Corn Chat",
+          "unitPrice": 40,
+          "quantity": 5
+        }
+      ],
+      "total": 495,
+      "status": "Happiness Disbursed",
+      "paid": true,
+      "paymentMethod": "UPI",
+      "gatewayRef": "MOCK-000001",
+      "customerId": "+911234567890",
+      "createdAt": "2026-07-29T09:40:48.131Z",
+      "spinUsed": false
     }
   ],
   "wallets": [
@@ -353,6 +385,10 @@
     {
       "customerId": "9512311001",
       "foodCoins": 15
+    },
+    {
+      "customerId": "+911234567890",
+      "foodCoins": 49
     }
   ],
   "referrals": [],
@@ -364,13 +400,18 @@
     {
       "mobile": "9512311001",
       "name": "Ankit"
+    },
+    {
+      "mobile": "+911234567890",
+      "name": "Jay patel",
+      "email": "jhfjhsfjhs@gmail.com"
     }
   ],
   "itemQuantities": {
     "item-momos": 0,
-    "item-jamun-shots": 68,
-    "item-kiwi-shots": 80,
-    "item-corn-chat": 60,
+    "item-jamun-shots": 64,
+    "item-kiwi-shots": 75,
+    "item-corn-chat": 55,
     "item-ghughara": 38,
     "item-chaas": 100,
     "item-mitha-pan": 60

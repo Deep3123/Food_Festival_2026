@@ -10,6 +10,7 @@
   ],
   "scripts": {
     "build": "tsc --build",
+    "build:vercel": "cd client && npx vite build",
     "typecheck": "tsc --build --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
