@@ -954,3 +954,90 @@ main {
   text-decoration: none;
   color: #fff;
 }
+
+/* ====================================================== THEME TOGGLE */
+.theme-toggle {
+  background: transparent;
+  border: 1px solid var(--iab-border);
+  border-radius: 50%;
+  width: 2.2rem;
+  height: 2.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  padding: 0;
+  box-shadow: none;
+  cursor: pointer;
+  transition: all var(--iab-transition);
+}
+.theme-toggle:hover {
+  border-color: var(--iab-primary);
+  background: var(--iab-primary-glow);
+  transform: none;
+  box-shadow: none;
+}
+
+/* ====================================================== LIGHT THEME */
+[data-theme="light"] {
+  --iab-primary: #e85d2a;
+  --iab-primary-dark: #d14d1e;
+  --iab-primary-light: #ff7a45;
+  --iab-primary-glow: rgba(232, 93, 42, 0.1);
+  --iab-bg: #f5f6fa;
+  --iab-bg-elevated: #ffffff;
+  --iab-card: #ffffff;
+  --iab-card-hover: #fafafa;
+  --iab-ink: #1a1f36;
+  --iab-ink-secondary: #4b5563;
+  --iab-muted: #6b7280;
+  --iab-border: rgba(0, 0, 0, 0.1);
+  --iab-border-hover: rgba(232, 93, 42, 0.4);
+  --iab-danger: #dc2626;
+  --iab-success: #059669;
+  --iab-success-bg: rgba(5, 150, 105, 0.08);
+  --iab-warning-bg: #fffbeb;
+  --iab-warning-border: rgba(251, 191, 36, 0.5);
+  --iab-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  --iab-shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.12);
+  --iab-glow: 0 0 40px rgba(232, 93, 42, 0.06);
+}
+
+[data-theme="light"] .site-header {
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+[data-theme="light"] .site-brand { color: var(--iab-ink); }
+[data-theme="light"] .site-nav-link { color: var(--iab-ink-secondary); }
+[data-theme="light"] .site-nav-link:hover { color: var(--iab-ink); background: rgba(0,0,0,0.04); }
+[data-theme="light"] .site-nav-link.active { color: #fff; background: var(--iab-primary); }
+[data-theme="light"] .site-nav-profile { color: var(--iab-ink-secondary); border-color: rgba(0,0,0,0.12); }
+[data-theme="light"] .site-nav-profile:hover { color: var(--iab-primary); border-color: var(--iab-primary); }
+[data-theme="light"] .site-cart-link { color: var(--iab-ink); }
+[data-theme="light"] .site-cart-count { background: var(--iab-primary); color: #fff; }
+
+[data-theme="light"] .sidebar { background: #fff; border-right-color: rgba(0,0,0,0.08); }
+[data-theme="light"] .sidebar-header { border-bottom-color: rgba(0,0,0,0.06); }
+[data-theme="light"] .sidebar-brand { color: var(--iab-ink); }
+[data-theme="light"] .sidebar-close { color: var(--iab-muted); }
+[data-theme="light"] .sidebar-user { border-bottom-color: rgba(0,0,0,0.06); }
+[data-theme="light"] .sidebar-user-name { color: var(--iab-ink); }
+[data-theme="light"] .sidebar-user-mobile { color: var(--iab-primary); }
+[data-theme="light"] .sidebar-nav-link { color: var(--iab-ink-secondary); }
+[data-theme="light"] .sidebar-nav-link:hover { color: var(--iab-ink); background: rgba(0,0,0,0.03); }
+[data-theme="light"] .sidebar-nav-link.active { color: var(--iab-primary); background: var(--iab-primary-glow); }
+
+[data-theme="light"] .hero {
+  background: linear-gradient(135deg, #1a1f36 0%, #2d3250 50%, #424769 100%);
+}
+[data-theme="light"] .hero h1 { color: #fff; }
+[data-theme="light"] .hero-badge { color: var(--iab-primary-light); }
+
+[data-theme="light"] .food-card-price { color: var(--iab-ink); }
+[data-theme="light"] .food-card-qty-minus { background: var(--iab-ink); color: #fff; }
+
+[data-theme="light"] .upi-qr-image { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+[data-theme="light"] .upi-app-btn { background: var(--iab-bg); }
+
+[data-theme="light"] .theme-toggle { border-color: rgba(0,0,0,0.12); }
+[data-theme="light"] .theme-toggle:hover { background: rgba(232,93,42,0.08); border-color: var(--iab-primary); }

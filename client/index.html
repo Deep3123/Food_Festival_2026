@@ -9,6 +9,9 @@
     <title>Invest-a-Bite — Invest in Taste. Earn in Happiness.</title>
   </head>
   <body>
+    <script>
+      (function(){var t=localStorage.getItem('iab.theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark')})();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

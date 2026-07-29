@@ -10,11 +10,13 @@ import { Link, NavLink } from "react-router-dom";
 import { ROUTES, walletPath } from "../routes.js";
 import { useCart } from "../cart/CartContext.js";
 import { useCustomer } from "../customer/CustomerContext.js";
+import { useTheme } from "../hooks/useTheme.js";
 import { ADMIN_MOBILE } from "../constants.js";
 
 export function SiteHeader(): JSX.Element {
   const { cart } = useCart();
   const { customer } = useCustomer();
+  const { theme, toggleTheme } = useTheme();
   const count = cart.reduce((sum, line) => sum + line.quantity, 0);
   const walletTarget = customer ? walletPath(customer.mobile) : ROUTES.profile;
   const isAdmin = customer?.mobile === ADMIN_MOBILE;
@@ -76,6 +78,15 @@ export function SiteHeader(): JSX.Element {
           </nav>
 
           <div className="site-header-actions">
+            <button
+              type="button"
+              className="theme-toggle"
+              onClick={toggleTheme}
+              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+              title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            >
+              {theme === "dark" ? "☀️" : "🌙"}
+            </button>
             <NavLink to={ROUTES.profile} className="site-nav-profile">
               {customer ? customer.name || customer.mobile : "Sign in"}
             </NavLink>
