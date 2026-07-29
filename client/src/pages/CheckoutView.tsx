@@ -121,7 +121,6 @@ export function CheckoutView(): JSX.Element {
         items: toCartItems(cart),
         redeemPoints: useRewards ? pointsToUse : undefined,
       });
-      clearCart();
       setState({ status: "waiting-approval", token: result.token, coinsEarned: result.coinsEarned, amount: paidAmount });
     } catch (err: unknown) {
       const message = err instanceof ApiClientError ? err.message : "Something went wrong. Please try again.";
@@ -148,6 +147,7 @@ export function CheckoutView(): JSX.Element {
     const interval = setInterval(async () => {
       const approved = await pollForApproval(token);
       if (approved && !cancelled) {
+        clearCart();
         setState({ status: "approved", token, coinsEarned });
       }
     }, 3000); // poll every 3 seconds
