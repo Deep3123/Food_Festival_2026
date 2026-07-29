@@ -27,7 +27,7 @@ const UPI_NAME = "Invest-a-Bite";
 type CheckoutState =
   | { status: "idle" }
   | { status: "processing" }
-  | { status: "waiting-approval"; token: string; coinsEarned: number }
+  | { status: "waiting-approval"; token: string; coinsEarned: number; amount: number }
   | { status: "approved"; token: string; coinsEarned: number }
   | { status: "failed"; message: string };
 
@@ -81,6 +81,7 @@ export function CheckoutView(): JSX.Element {
   // Place the order and move to "waiting" state
   async function handlePayWithUPI(): Promise<void> {
     if (!customer) return;
+    const paidAmount = amountToPay;
     setState({ status: "processing" });
     try {
       const result = await checkout({
@@ -90,7 +91,7 @@ export function CheckoutView(): JSX.Element {
         redeemPoints: useRewards ? pointsToUse : undefined,
       });
       clearCart();
-      setState({ status: "waiting-approval", token: result.token, coinsEarned: result.coinsEarned });
+      setState({ status: "waiting-approval", token: result.token, coinsEarned: result.coinsEarned, amount: paidAmount });
     } catch (err: unknown) {
       const message = err instanceof ApiClientError ? err.message : "Something went wrong. Please try again.";
       setState({ status: "failed", message });
@@ -153,6 +154,13 @@ export function CheckoutView(): JSX.Element {
 
   // --- WAITING FOR ADMIN APPROVAL ---
   if (state.status === "waiting-approval") {
+    const paidAmount = state.amount;
+    const paidUpiUrl = buildUpiUrl(paidAmount, `Order at ${UPI_NAME}`);
+    const paidGpayUrl = buildGPayUrl(paidAmount, `Order at ${UPI_NAME}`);
+    const paidPhonePeUrl = buildPhonePeUrl(paidAmount, `Order at ${UPI_NAME}`);
+    const paidPaytmUrl = buildPaytmUrl(paidAmount, `Order at ${UPI_NAME}`);
+    const paidQrUrl = buildQrUrl(paidUpiUrl);
+
     return (
       <main className="checkout">
         <h1>Complete Payment</h1>
@@ -160,12 +168,12 @@ export function CheckoutView(): JSX.Element {
         <div className="upi-payment-card">
           <div className="upi-amount-display">
             <span className="upi-amount-label">Amount to Pay</span>
-            <span className="upi-amount-value">{formatINR(amountToPay)}</span>
+            <span className="upi-amount-value">{formatINR(paidAmount)}</span>
           </div>
 
           <div className="upi-qr-section">
             <p className="upi-qr-title">Scan QR Code</p>
-            <img className="upi-qr-image" src={qrImageUrl} alt={`UPI QR code for ${formatINR(amountToPay)}`} width={220} height={220} />
+            <img className="upi-qr-image" src={paidQrUrl} alt={`UPI QR code for ${formatINR(paidAmount)}`} width={220} height={220} />
             <p className="upi-qr-hint">Open any UPI app and scan this code</p>
           </div>
 
@@ -174,16 +182,16 @@ export function CheckoutView(): JSX.Element {
           <div className="upi-apps-section">
             <p className="upi-apps-title">Pay using UPI App</p>
             <div className="upi-apps-grid">
-              <a href={gpayUrl} className="upi-app-btn upi-app-gpay">
+              <a href={paidGpayUrl} className="upi-app-btn upi-app-gpay">
                 <span className="upi-app-icon">G</span><span>Google Pay</span>
               </a>
-              <a href={phonePeUrl} className="upi-app-btn upi-app-phonepe">
+              <a href={paidPhonePeUrl} className="upi-app-btn upi-app-phonepe">
                 <span className="upi-app-icon">P</span><span>PhonePe</span>
               </a>
-              <a href={paytmUrl} className="upi-app-btn upi-app-paytm">
+              <a href={paidPaytmUrl} className="upi-app-btn upi-app-paytm">
                 <span className="upi-app-icon">₹</span><span>Paytm</span>
               </a>
-              <a href={upiUrl} className="upi-app-btn upi-app-generic">
+              <a href={paidUpiUrl} className="upi-app-btn upi-app-generic">
                 <span className="upi-app-icon">⋯</span><span>Other UPI</span>
               </a>
             </div>
