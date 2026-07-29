@@ -31,7 +31,7 @@ export function InvestorSection(): JSX.Element {
       <section className="investor-vision" aria-label="Vision" data-testid="investor-vision">
         <h2>Our Vision</h2>
         <p>
-          ByteBites reimagines street food as a fintech-powered experience —
+          Invest-a-Bite reimagines street food as a fintech-powered experience —
           blending a delightful food marketplace with digital wallets, rewards,
           and gamification. Our vision is to turn every foodpreneur into a
           finfluencer, making food ordering as rewarding as it is delicious.

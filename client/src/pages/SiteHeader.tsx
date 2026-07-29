@@ -38,9 +38,9 @@ export function SiteHeader(): JSX.Element {
             ☰
           </button>
 
-          <Link to={ROUTES.home} className="site-brand" aria-label="ByteBites home">
+          <Link to={ROUTES.home} className="site-brand" aria-label="Invest-a-Bite home">
             <span className="site-brand-mark">🍽</span>
-            <span className="site-brand-name">ByteBites</span>
+            <span className="site-brand-name">Invest-a-Bite</span>
           </Link>
 
           {/* Desktop nav — hidden on mobile */}
@@ -99,7 +99,7 @@ export function SiteHeader(): JSX.Element {
       {/* Mobile sidebar drawer */}
       <aside className={`sidebar ${sidebarOpen ? "sidebar--open" : ""}`} aria-label="Navigation menu">
         <div className="sidebar-header">
-          <span className="sidebar-brand">🍽 ByteBites</span>
+          <span className="sidebar-brand">🍽 Invest-a-Bite</span>
           <button
             type="button"
             className="sidebar-close"

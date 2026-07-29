@@ -19,7 +19,7 @@ import type {
   PaymentGateway,
 } from "../../types/index.js";
 
-export const APP_NAME = "ByteBites API";
+export const APP_NAME = "Invest-a-Bite API";
 
 const PORT = Number(process.env.PORT ?? 3001);
 

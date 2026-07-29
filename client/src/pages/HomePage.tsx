@@ -17,7 +17,7 @@ export function HomePage(): JSX.Element {
   return (
     <main className="home">
       <section className="hero">
-        <h1>Welcome to ByteBites</h1>
+        <h1>Welcome to Invest-a-Bite</h1>
         <p className="hero-subheading">Where food meets fintech innovation.</p>
         <p className="hero-tagline">Invest in Taste. Earn in Happiness.</p>
 

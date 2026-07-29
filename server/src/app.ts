@@ -66,7 +66,7 @@ const REFERRAL_REWARD_COINS = 10;
  * (Requirement 10.1).
  */
 function referralLinkFor(customerId: string): string {
-  return `https://bytebites.app/join?ref=${encodeURIComponent(customerId)}`;
+  return `https://investabite.app/join?ref=${encodeURIComponent(customerId)}`;
 }
 
 /** The consistent error payload shape used by every API error response. */

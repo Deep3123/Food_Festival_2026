@@ -35,7 +35,7 @@ describe("HomePage content", () => {
   it("renders the hero heading (Req 1.1)", () => {
     renderHome();
     expect(
-      screen.getByRole("heading", { name: "Welcome to ByteBites" })
+      screen.getByRole("heading", { name: "Welcome to Invest-a-Bite" })
     ).toBeInTheDocument();
   });
 

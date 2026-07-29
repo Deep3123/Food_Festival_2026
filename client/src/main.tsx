@@ -12,7 +12,7 @@ import { BrowserRouter } from "react-router-dom";
 import { App } from "./App.js";
 import "./styles/global.css";
 
-export const APP_NAME = "ByteBites";
+export const APP_NAME = "Invest-a-Bite";
 
 const container = document.getElementById("root");
 if (container) {

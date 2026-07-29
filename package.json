@@ -2,7 +2,7 @@
   "name": "bytebites",
   "version": "0.1.0",
   "private": true,
-  "description": "ByteBites - Invest in Taste. Earn in Happiness.",
+  "description": "Invest-a-Bite - Invest in Taste. Earn in Happiness.",
   "type": "module",
   "workspaces": [
     "client",
