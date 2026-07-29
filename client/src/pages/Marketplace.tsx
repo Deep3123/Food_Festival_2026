@@ -15,12 +15,14 @@ import { ROUTES } from "../routes.js";
 import { useCart } from "../cart/CartContext.js";
 import { usePolling } from "../hooks/usePolling.js";
 import { FoodItemCard } from "./FoodItemCard.js";
+import { formatINR } from "../format.js";
 
 export function Marketplace(): JSX.Element {
-  const { addItem, cart, increment, decrement, removeItem } = useCart();
+  const { addItem, cart, total, increment, decrement, removeItem } = useCart();
 
   const fetchMenu = useCallback(() => getAllItems(), []);
   const { data: items, error, loading } = usePolling<FoodItem[]>(fetchMenu);
+  const cartCount = cart.reduce((sum, line) => sum + line.quantity, 0);
 
   if (loading && !items && !error) {
     return (
@@ -47,9 +49,6 @@ export function Marketplace(): JSX.Element {
     <main className="marketplace">
       <header className="marketplace-header">
         <h1>Marketplace</h1>
-        <Link to={ROUTES.cart} className="marketplace-cart-link">
-          Cart ({cart.reduce((sum, line) => sum + line.quantity, 0)})
-        </Link>
       </header>
 
       <div className="reward-info-banner">
@@ -81,6 +80,19 @@ export function Marketplace(): JSX.Element {
             );
           })}
         </ul>
+      )}
+
+      {/* Sticky cart bar — shown when cart has items */}
+      {cartCount > 0 && (
+        <div className="sticky-cart-bar">
+          <div className="sticky-cart-info">
+            <span className="sticky-cart-count">{cartCount} {cartCount === 1 ? "item" : "items"}</span>
+            <span className="sticky-cart-total">{formatINR(total)}</span>
+          </div>
+          <Link to={ROUTES.cart} className="sticky-cart-btn">
+            Go to Cart →
+          </Link>
+        </div>
       )}
     </main>
   );
