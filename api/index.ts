@@ -3,13 +3,19 @@
  *
  * Wraps the Express app so all `/api/*` requests are handled by the same
  * Express router used in local development.
+ *
+ * Uses in-memory storage (no file persistence) since Vercel's serverless
+ * filesystem is ephemeral/read-only.
  */
 
 import { createApp } from "../server/src/app.js";
-import { store } from "../server/src/store.js";
+import { Store } from "../server/src/store.js";
 import { MockGateway } from "../server/src/gateways/mock-gateway.js";
 import { MockNotificationGateway } from "../server/src/notifications/mock-notification-gateway.js";
 import type { PaymentGateway, NotificationGateway } from "../types/index.js";
+
+// In-memory store (no file persistence for serverless)
+const store = new Store();
 
 function resolveGateway(): PaymentGateway {
   return new MockGateway({ mode: "success" });
