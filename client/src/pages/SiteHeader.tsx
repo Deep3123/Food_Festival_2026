@@ -60,11 +60,6 @@ export function SiteHeader(): JSX.Element {
             <NavLink to={ROUTES.trending} className="site-nav-link">
               Trending
             </NavLink>
-            {!isAdmin && (
-              <NavLink to={walletTarget} className="site-nav-link">
-                Rewards
-              </NavLink>
-            )}
             {isAdmin && (
               <NavLink to={ROUTES.admin} className="site-nav-link">
                 Admin
@@ -142,11 +137,6 @@ export function SiteHeader(): JSX.Element {
           <NavLink to={ROUTES.trending} className="sidebar-nav-link" onClick={closeSidebar}>
             🔥 Trending
           </NavLink>
-          {!isAdmin && (
-            <NavLink to={walletTarget} className="sidebar-nav-link" onClick={closeSidebar}>
-              🎁 Rewards
-            </NavLink>
-          )}
           {isAdmin && (
             <NavLink to={ROUTES.admin} className="sidebar-nav-link" onClick={closeSidebar}>
               📊 Admin

@@ -28,9 +28,6 @@ export function HomePage(): JSX.Element {
           <button type="button" className="btn-secondary" onClick={() => navigate(ROUTES.trending)}>
             <span aria-hidden="true">🔥 </span>Trending Foods
           </button>
-          <button type="button" className="btn-secondary" onClick={() => navigate(ROUTES.investor)}>
-            <span aria-hidden="true">📊 </span>Investor Dashboard
-          </button>
         </nav>
       </section>
 
@@ -39,7 +36,7 @@ export function HomePage(): JSX.Element {
         <div className="home-features-grid">
           <div className="home-feature-card">
             <span className="home-feature-icon">💰</span>
-            <h3>Earn FoodCoins</h3>
+            <h3>Earn Reward Points</h3>
             <p>Get 10% reward points on every order. Redeem them for discounts on your next meal.</p>
           </div>
           <div className="home-feature-card">
@@ -48,24 +45,24 @@ export function HomePage(): JSX.Element {
             <p>Fast, secure checkout via UPI. No cash needed — just scan, pay, and enjoy.</p>
           </div>
           <div className="home-feature-card">
-            <span className="home-feature-icon">🤖</span>
-            <h3>AI Chef</h3>
-            <p>Tell us your mood and cravings. Our AI recommends the perfect dish for you.</p>
+            <span className="home-feature-icon">🎟️</span>
+            <h3>Coupon Discounts</h3>
+            <p>Apply coupon codes at checkout for instant discounts. We auto-suggest the best ones for you.</p>
           </div>
           <div className="home-feature-card">
-            <span className="home-feature-icon">🎰</span>
-            <h3>Spin & Win</h3>
-            <p>Every order unlocks a spin! Win double FoodCoins, discounts, or free drinks.</p>
+            <span className="home-feature-icon">📦</span>
+            <h3>Real-Time Tracking</h3>
+            <p>Track your order status live. Know exactly when your food is ready for pickup.</p>
           </div>
           <div className="home-feature-card">
-            <span className="home-feature-icon">📈</span>
-            <h3>Live Metrics</h3>
-            <p>Track real-time sales, satisfaction scores, and trending items like a startup dashboard.</p>
+            <span className="home-feature-icon">🔥</span>
+            <h3>Trending Foods</h3>
+            <p>See what's popular right now. Discover the most-ordered dishes at the festival.</p>
           </div>
           <div className="home-feature-card">
-            <span className="home-feature-icon">🤝</span>
-            <h3>Refer & Earn</h3>
-            <p>Share your referral link. When friends order, you both earn bonus FoodCoins.</p>
+            <span className="home-feature-icon">🍽️</span>
+            <h3>Curated Menu</h3>
+            <p>Handpicked items with customizable variants. Choose exactly how you like your food.</p>
           </div>
         </div>
       </section>
@@ -76,26 +73,26 @@ export function HomePage(): JSX.Element {
           <div className="home-step">
             <div className="home-step-number">1</div>
             <h3>Browse & Pick</h3>
-            <p>Explore our curated food marketplace. Filter by taste, spice level, or stall.</p>
+            <p>Explore our curated food menu. Choose items with custom variants like extra cheese.</p>
           </div>
           <div className="home-step-connector"></div>
           <div className="home-step">
             <div className="home-step-number">2</div>
             <h3>Pay with UPI</h3>
-            <p>Secure one-tap checkout. Your order gets a unique token for tracking.</p>
+            <p>Scan the QR code or tap to pay via GPay, PhonePe, or Paytm. Apply coupons for instant discounts.</p>
           </div>
           <div className="home-step-connector"></div>
           <div className="home-step">
             <div className="home-step-number">3</div>
-            <h3>Earn & Enjoy</h3>
-            <p>Collect FoodCoins, spin the wheel, and track your order in real-time.</p>
+            <h3>Collect & Enjoy</h3>
+            <p>Get your order token once payment is verified. Pick up your food and earn reward points!</p>
           </div>
         </div>
       </section>
 
       <section className="home-cta">
-        <h2>Ready to taste the future?</h2>
-        <p>Join hundreds of foodies already earning rewards with every bite.</p>
+        <h2>Ready to order?</h2>
+        <p>Fresh food, fast UPI payments, and instant rewards — all in one place.</p>
         <button type="button" onClick={() => navigate(ROUTES.marketplace)}>
           Start Ordering →
         </button>
