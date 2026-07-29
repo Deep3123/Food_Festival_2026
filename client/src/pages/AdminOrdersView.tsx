@@ -17,7 +17,7 @@ import { ADMIN_MOBILE } from "../constants.js";
 import { ROUTES } from "../routes.js";
 import { formatINR } from "../format.js";
 
-type AdminTab = "new" | "processing" | "completed";
+type AdminTab = "new" | "completed";
 
 /** Summarize a list of cart items as "2× Paneer Tikka, 1× Naan". */
 function itemsSummary(items: OrderResponse["items"]): string {
@@ -59,11 +59,18 @@ function AdminOrdersPanel(): JSX.Element {
   const [advanceError, setAdvanceError] = useState<string | undefined>(undefined);
 
   const handleAdvance = useCallback(
-    async (token: string): Promise<void> => {
+    async (token: string, skipToCompleted = false): Promise<void> => {
       setAdvancingToken(token);
       setAdvanceError(undefined);
       try {
-        await advanceOrder(token);
+        if (skipToCompleted) {
+          // Advance through all intermediate statuses to "Happiness Disbursed"
+          await advanceOrder(token); // Craving Funded → Flavor Processing
+          await advanceOrder(token); // Flavor Processing → Taste Ready for Pickup
+          await advanceOrder(token); // Taste Ready for Pickup → Happiness Disbursed
+        } else {
+          await advanceOrder(token);
+        }
         refresh();
       } catch {
         setAdvanceError("We couldn't advance that order. Please try again.");
@@ -86,9 +93,7 @@ function AdminOrdersPanel(): JSX.Element {
   const displayedOrders =
     activeTab === "new"
       ? newOrders
-      : activeTab === "processing"
-        ? processingOrders
-        : completedOrders;
+      : completedOrders;
 
   return (
     <main className="admin">
@@ -106,16 +111,6 @@ function AdminOrdersPanel(): JSX.Element {
           New Orders
           {newOrders.length > 0 && (
             <span className="admin-tab-badge">{newOrders.length}</span>
-          )}
-        </button>
-        <button
-          type="button"
-          className={`admin-tab ${activeTab === "processing" ? "admin-tab--active" : ""}`}
-          onClick={() => setActiveTab("processing")}
-        >
-          Processing
-          {processingOrders.length > 0 && (
-            <span className="admin-tab-badge">{processingOrders.length}</span>
           )}
         </button>
         <button
@@ -146,7 +141,7 @@ function AdminOrdersPanel(): JSX.Element {
 
       {data && displayedOrders.length === 0 && (
         <p className="admin-empty-tab" data-testid="admin-empty">
-          No {activeTab === "new" ? "new" : activeTab === "processing" ? "processing" : "completed"} orders.
+          No {activeTab === "new" ? "new" : "completed"} orders.
         </p>
       )}
 
@@ -193,14 +188,14 @@ function AdminOrdersPanel(): JSX.Element {
                     type="button"
                     className="admin-advance"
                     data-testid={`admin-advance-${order.token}`}
-                    onClick={() => void handleAdvance(order.token)}
+                    onClick={() => void handleAdvance(order.token, order.status === "Craving Funded")}
                     disabled={busy}
                   >
                     {busy
                       ? "Processing…"
                       : order.status === "Craving Funded"
                         ? "✓ Approve Payment"
-                        : "Advance Status →"}
+                        : "Mark Completed"}
                   </button>
                 )}
               </div>
