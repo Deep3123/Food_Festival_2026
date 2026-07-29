@@ -44,6 +44,40 @@ function buildUpiUrl(amount: number, txnNote: string): string {
   return `upi://pay?${params.toString()}`;
 }
 
+/** App-specific deep links */
+function buildGPayUrl(amount: number, txnNote: string): string {
+  const params = new URLSearchParams({
+    pa: UPI_ID,
+    pn: UPI_NAME,
+    am: amount.toFixed(2),
+    cu: "INR",
+    tn: txnNote,
+  });
+  return `tez://upi/pay?${params.toString()}`;
+}
+
+function buildPhonePeUrl(amount: number, txnNote: string): string {
+  const params = new URLSearchParams({
+    pa: UPI_ID,
+    pn: UPI_NAME,
+    am: amount.toFixed(2),
+    cu: "INR",
+    tn: txnNote,
+  });
+  return `phonepe://pay?${params.toString()}`;
+}
+
+function buildPaytmUrl(amount: number, txnNote: string): string {
+  const params = new URLSearchParams({
+    pa: UPI_ID,
+    pn: UPI_NAME,
+    am: amount.toFixed(2),
+    cu: "INR",
+    tn: txnNote,
+  });
+  return `paytmmp://pay?${params.toString()}`;
+}
+
 /** Generate QR code image URL via a free QR API */
 function buildQrUrl(upiUrl: string, size = 250): string {
   return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(upiUrl)}`;
@@ -72,6 +106,9 @@ export function CheckoutView(): JSX.Element {
   const amountToPay = total - discount;
 
   const upiUrl = buildUpiUrl(amountToPay, `Order at ${UPI_NAME}`);
+  const gpayUrl = buildGPayUrl(amountToPay, `Order at ${UPI_NAME}`);
+  const phonePeUrl = buildPhonePeUrl(amountToPay, `Order at ${UPI_NAME}`);
+  const paytmUrl = buildPaytmUrl(amountToPay, `Order at ${UPI_NAME}`);
   const qrImageUrl = buildQrUrl(upiUrl);
 
   function handleProceedToPayment(): void {
@@ -210,15 +247,15 @@ export function CheckoutView(): JSX.Element {
           <div className="upi-apps-section">
             <p className="upi-apps-title">Pay using UPI App</p>
             <div className="upi-apps-grid">
-              <a href={upiUrl} className="upi-app-btn upi-app-gpay">
+              <a href={gpayUrl} className="upi-app-btn upi-app-gpay">
                 <span className="upi-app-icon">G</span>
                 <span>Google Pay</span>
               </a>
-              <a href={upiUrl} className="upi-app-btn upi-app-phonepe">
+              <a href={phonePeUrl} className="upi-app-btn upi-app-phonepe">
                 <span className="upi-app-icon">P</span>
                 <span>PhonePe</span>
               </a>
-              <a href={upiUrl} className="upi-app-btn upi-app-paytm">
+              <a href={paytmUrl} className="upi-app-btn upi-app-paytm">
                 <span className="upi-app-icon">₹</span>
                 <span>Paytm</span>
               </a>
