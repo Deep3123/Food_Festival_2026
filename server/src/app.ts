@@ -854,18 +854,25 @@ export function createApp(deps: AppDependencies): Express {
     res.status(204).end();
   });
 
-  // GET /api/coupons/suggest?total=X — suggest applicable coupons for user
+  // GET /api/coupons/suggest?total=X&customerId=Y — suggest applicable coupons for user
   app.get("/api/coupons/suggest", (req: Request, res: Response): void => {
     const total = Number(req.query.total ?? 0);
-    const coupons = store.getCoupons().filter((c) => c.active && total >= c.minOrderValue);
+    const customerId = typeof req.query.customerId === "string" ? req.query.customerId : "";
+    const coupons = store.getCoupons().filter((c) => {
+      if (!c.active) return false;
+      if (total < c.minOrderValue) return false;
+      if (customerId && c.usedBy?.includes(customerId)) return false;
+      return true;
+    });
     res.status(200).json(coupons);
   });
 
   // POST /api/coupons/apply — validate and calculate discount for a coupon
   app.post("/api/coupons/apply", (req: Request, res: Response): void => {
-    const body = req.body as { code?: string; total?: number };
+    const body = req.body as { code?: string; total?: number; customerId?: string };
     const code = typeof body.code === "string" ? body.code : "";
     const total = typeof body.total === "number" ? body.total : 0;
+    const customerId = typeof body.customerId === "string" ? body.customerId : "";
     const coupon = store.getCoupon(code);
     if (!coupon || !coupon.active) {
       const errBody: ApiError = { error: "Invalid or expired coupon", code: "INVALID_COUPON" };
@@ -873,7 +880,13 @@ export function createApp(deps: AppDependencies): Express {
       return;
     }
     if (total < coupon.minOrderValue) {
-      const errBody: ApiError = { error: `Minimum order value is ₹${coupon.minOrderValue}`, code: "MIN_ORDER_NOT_MET" };
+      const errBody: ApiError = { error: `Minimum order value is ₹${coupon.minOrderValue}. Add more items to use this coupon.`, code: "MIN_ORDER_NOT_MET" };
+      res.status(400).json(errBody);
+      return;
+    }
+    // Check if this user has already used the coupon
+    if (customerId && coupon.usedBy?.includes(customerId)) {
+      const errBody: ApiError = { error: "You have already used this coupon", code: "COUPON_ALREADY_USED" };
       res.status(400).json(errBody);
       return;
     }
@@ -883,6 +896,28 @@ export function createApp(deps: AppDependencies): Express {
     }
     discount = Math.min(discount, total);
     res.status(200).json({ coupon, discount, finalTotal: total - discount });
+  });
+
+  // POST /api/coupons/markUsed — mark a coupon as used by a customer (called after successful order)
+  app.post("/api/coupons/markUsed", (req: Request, res: Response): void => {
+    const body = req.body as { code?: string; customerId?: string };
+    const code = typeof body.code === "string" ? body.code : "";
+    const customerId = typeof body.customerId === "string" ? body.customerId : "";
+    if (!code || !customerId) {
+      res.status(400).json({ error: "code and customerId required", code: "INVALID_REQUEST" });
+      return;
+    }
+    const coupon = store.getCoupon(code);
+    if (!coupon) {
+      res.status(404).json({ error: "Coupon not found", code: "COUPON_NOT_FOUND" });
+      return;
+    }
+    const usedBy = coupon.usedBy ?? [];
+    if (!usedBy.includes(customerId)) {
+      coupon.usedBy = [...usedBy, customerId];
+      store.saveCoupon(coupon);
+    }
+    res.status(200).json({ success: true });
   });
 
   // --- Admin config (UPI ID) -----------------------------------------------

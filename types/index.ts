@@ -232,6 +232,8 @@ export interface Coupon {
   maxDiscount?: number;
   /** Whether this coupon is currently active */
   active: boolean;
+  /** List of customer IDs (mobiles) who have already used this coupon */
+  usedBy?: string[];
 }
 
 // --- Admin configuration ---------------------------------------------------

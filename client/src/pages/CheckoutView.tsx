@@ -10,7 +10,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ApiClientError, checkout, getOrder, getWallet, getPaymentConfig, suggestCoupons, applyCoupon } from "../api/client.js";
+import { ApiClientError, checkout, getOrder, getWallet, getPaymentConfig, suggestCoupons, applyCoupon, markCouponUsed } from "../api/client.js";
 import type { CheckoutResponse, OrderResponse, CouponResponse, PaymentConfig } from "../api/client.js";
 import { useCart } from "../cart/CartContext.js";
 import { useCustomer } from "../customer/CustomerContext.js";
@@ -85,15 +85,15 @@ export function CheckoutView(): JSX.Element {
   // Suggest coupons when total changes
   useEffect(() => {
     if (total > 0) {
-      suggestCoupons(total).then(setSuggestedCoupons).catch(() => setSuggestedCoupons([]));
+      suggestCoupons(total, customer?.mobile).then(setSuggestedCoupons).catch(() => setSuggestedCoupons([]));
     }
-  }, [total]);
+  }, [total, customer]);
 
   async function handleApplyCoupon(): Promise<void> {
     if (!couponCode) return;
     setCouponError("");
     try {
-      const result = await applyCoupon(couponCode, total - discount);
+      const result = await applyCoupon(couponCode, total - discount, customer?.mobile);
       setCouponDiscount(result.discount);
     } catch (err: unknown) {
       setCouponDiscount(0);
@@ -121,6 +121,10 @@ export function CheckoutView(): JSX.Element {
         items: toCartItems(cart),
         redeemPoints: useRewards ? pointsToUse : undefined,
       });
+      // Mark coupon as used for this customer
+      if (couponCode && couponDiscount > 0) {
+        markCouponUsed(couponCode, customer.mobile).catch(() => {});
+      }
       setState({ status: "waiting-approval", token: result.token, coinsEarned: result.coinsEarned, amount: paidAmount });
     } catch (err: unknown) {
       const message = err instanceof ApiClientError ? err.message : "Something went wrong. Please try again.";

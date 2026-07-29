@@ -352,14 +352,21 @@ export function deleteCoupon(code: string): Promise<void> {
   return request<void>(`/admin/coupons/${encodeURIComponent(code)}`, { method: "DELETE" });
 }
 
-/** GET /api/coupons/suggest?total=X — get applicable coupons for an order total. */
-export function suggestCoupons(total: number): Promise<CouponResponse[]> {
-  return request<CouponResponse[]>(`/coupons/suggest?total=${total}`);
+/** GET /api/coupons/suggest?total=X&customerId=Y — get applicable coupons for an order total. */
+export function suggestCoupons(total: number, customerId?: string): Promise<CouponResponse[]> {
+  let url = `/coupons/suggest?total=${total}`;
+  if (customerId) url += `&customerId=${encodeURIComponent(customerId)}`;
+  return request<CouponResponse[]>(url);
 }
 
 /** POST /api/coupons/apply — validate and apply a coupon code. */
-export function applyCoupon(code: string, total: number): Promise<CouponApplyResponse> {
-  return postJson<CouponApplyResponse>("/coupons/apply", { code, total });
+export function applyCoupon(code: string, total: number, customerId?: string): Promise<CouponApplyResponse> {
+  return postJson<CouponApplyResponse>("/coupons/apply", { code, total, customerId });
+}
+
+/** POST /api/coupons/markUsed — mark coupon as used by customer after order. */
+export function markCouponUsed(code: string, customerId: string): Promise<void> {
+  return postJson<void>("/coupons/markUsed", { code, customerId });
 }
 
 // --- Admin config ----------------------------------------------------------
