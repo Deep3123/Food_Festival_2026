@@ -63,7 +63,7 @@ function seedFoodItems(): FoodItem[] {
     {
       id: "item-momos",
       name: "Momos",
-      imageUrl: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=600&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?auto=format&fit=crop&w=600&q=80",
       description: "Steamed dumplings stuffed with a flavourful veggie filling, served with spicy chutney.",
       rating: 4.7,
       availableQuantity: 50,
@@ -76,7 +76,7 @@ function seedFoodItems(): FoodItem[] {
     {
       id: "item-jamun-shots",
       name: "Jamun Shots",
-      imageUrl: "https://images.unsplash.com/photo-1600271886742-f049cd451bba?auto=format&fit=crop&w=600&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1546173159-315724a31696?auto=format&fit=crop&w=600&q=80",
       description: "Chilled jamun berry shots — tangy, sweet, and refreshing.",
       rating: 4.5,
       availableQuantity: 80,
@@ -89,7 +89,7 @@ function seedFoodItems(): FoodItem[] {
     {
       id: "item-kiwi-shots",
       name: "Kiwi Shots",
-      imageUrl: "https://images.unsplash.com/photo-1585059895524-72f2d3abbe18?auto=format&fit=crop&w=600&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1616684000067-36952fde56ec?auto=format&fit=crop&w=600&q=80",
       description: "Fresh kiwi fruit shots bursting with tropical flavour.",
       rating: 4.4,
       availableQuantity: 80,
@@ -102,7 +102,7 @@ function seedFoodItems(): FoodItem[] {
     {
       id: "item-corn-chat",
       name: "Corn Chat",
-      imageUrl: "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?auto=format&fit=crop&w=600&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=600&q=80",
       description: "Spiced sweet corn tossed with onion, tomato, lemon, and chaat masala.",
       rating: 4.3,
       availableQuantity: 60,
@@ -128,7 +128,7 @@ function seedFoodItems(): FoodItem[] {
     {
       id: "item-chaas",
       name: "Chaas",
-      imageUrl: "https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&w=600&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80",
       description: "Cool spiced buttermilk with cumin and fresh coriander — the perfect thirst quencher.",
       rating: 4.2,
       availableQuantity: 100,
@@ -141,7 +141,7 @@ function seedFoodItems(): FoodItem[] {
     {
       id: "item-mitha-pan",
       name: "Mitha Pan",
-      imageUrl: "https://images.unsplash.com/photo-1590080876351-941da357a4e4?auto=format&fit=crop&w=600&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=600&q=80",
       description: "Sweet betel leaf loaded with gulkand, tutti-frutti, and aromatic fennel.",
       rating: 4.8,
       availableQuantity: 60,
