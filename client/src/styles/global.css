@@ -1360,3 +1360,35 @@ main {
   border-color: var(--iab-primary);
   background: rgba(232, 93, 42, 0.06);
 }
+
+/* ================================================ IMAGE UPLOAD */
+.image-upload-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+.image-upload-preview {
+  width: 100%;
+  max-width: 200px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--iab-border);
+}
+.image-upload-field input[type="file"] {
+  font-size: 0.85rem;
+  padding: 0.4rem;
+  border: 1px dashed var(--iab-border);
+  border-radius: 8px;
+  cursor: pointer;
+  background: var(--iab-bg);
+}
+.image-upload-field input[type="file"]:hover {
+  border-color: var(--iab-primary);
+}
+.image-upload-status {
+  font-size: 0.82rem;
+  color: var(--iab-primary);
+  font-weight: 600;
+}

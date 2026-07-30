@@ -8,6 +8,7 @@ import { getAdminItems, updateItemStock, createAdminItem, updateAdminItem, delet
 import type { FoodItem } from "../../../types/index.js";
 import { useCustomer } from "../customer/CustomerContext.js";
 import { usePolling } from "../hooks/usePolling.js";
+import { uploadImage } from "../hooks/useImageUpload.js";
 import { ADMIN_MOBILE } from "../constants.js";
 import { ROUTES } from "../routes.js";
 import { formatINR } from "../format.js";
@@ -115,6 +116,19 @@ function StockPanel(): JSX.Element {
 function EditItemModal({ item, onSave, onCancel }: { item: FoodItem; onSave: (i: FoodItem) => void; onCancel: () => void }) {
   const [form, setForm] = useState({ ...item });
   const [variantText, setVariantText] = useState(item.variants?.map(v => `${v.name}:${v.priceAddon}`).join(", ") ?? "");
+  const [uploading, setUploading] = useState(false);
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const result = await uploadImage(file);
+      setForm({ ...form, imageUrl: result.url });
+    } catch { alert("Image upload failed. Try again."); }
+    finally { setUploading(false); }
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const variants = variantText.split(",").map(s => s.trim()).filter(Boolean).map(s => {
@@ -128,13 +142,19 @@ function EditItemModal({ item, onSave, onCancel }: { item: FoodItem; onSave: (i:
       <form className="modal-card" onClick={e => e.stopPropagation()} onSubmit={handleSubmit}>
         <h3>Edit: {item.name}</h3>
         <label>Name <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></label>
-        <label>Image URL <input value={form.imageUrl} onChange={e => setForm({ ...form, imageUrl: e.target.value })} /></label>
+        <label>Image
+          <div className="image-upload-field">
+            {form.imageUrl && <img src={form.imageUrl} alt="Preview" className="image-upload-preview" />}
+            <input type="file" accept="image/*" onChange={handleImageUpload} />
+            {uploading && <span className="image-upload-status">Uploading…</span>}
+          </div>
+        </label>
         <label>Description <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} /></label>
         <label>Price (₹) <input type="number" value={form.price} onChange={e => setForm({ ...form, price: Number(e.target.value) })} /></label>
         <label>Quantity <input type="number" value={form.availableQuantity} onChange={e => setForm({ ...form, availableQuantity: Number(e.target.value) })} /></label>
         <label>Variants (name:price, ...) <input value={variantText} onChange={e => setVariantText(e.target.value)} placeholder="With Cheese:20, Extra Spicy:10" /></label>
         <div className="modal-actions">
-          <button type="submit">Save Changes</button>
+          <button type="submit" disabled={uploading}>Save Changes</button>
           <button type="button" className="btn-secondary" onClick={onCancel}>Cancel</button>
         </div>
       </form>
@@ -146,6 +166,19 @@ function AddProductForm({ onCreated }: { onCreated: () => void }) {
   const [form, setForm] = useState({ name: "", imageUrl: "", description: "", price: 0, availableQuantity: 50, stallId: "stall-tandoori", spice: "medium" as const, flavor: "savory" as const, portion: "regular" as const });
   const [variants, setVariants] = useState("");
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const result = await uploadImage(file);
+      setForm({ ...form, imageUrl: result.url });
+    } catch { alert("Image upload failed. Try again."); }
+    finally { setUploading(false); }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -163,12 +196,18 @@ function AddProductForm({ onCreated }: { onCreated: () => void }) {
     <form className="profile-form" onSubmit={handleSubmit} style={{ maxWidth: "100%", marginBottom: "2rem" }}>
       <h3>Add New Product</h3>
       <label className="profile-field">Name <input required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></label>
-      <label className="profile-field">Image URL <input value={form.imageUrl} onChange={e => setForm({ ...form, imageUrl: e.target.value })} placeholder="https://..." /></label>
+      <label className="profile-field">Product Image
+        <div className="image-upload-field">
+          {form.imageUrl && <img src={form.imageUrl} alt="Preview" className="image-upload-preview" />}
+          <input type="file" accept="image/*" onChange={handleImageUpload} />
+          {uploading && <span className="image-upload-status">Uploading…</span>}
+        </div>
+      </label>
       <label className="profile-field">Description <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} /></label>
       <label className="profile-field">Price (₹) <input type="number" required min="1" value={form.price || ""} onChange={e => setForm({ ...form, price: Number(e.target.value) })} /></label>
       <label className="profile-field">Quantity <input type="number" value={form.availableQuantity} onChange={e => setForm({ ...form, availableQuantity: Number(e.target.value) })} /></label>
       <label className="profile-field">Variants (name:price, ...) <input value={variants} onChange={e => setVariants(e.target.value)} placeholder="With Cheese:20, Without Cheese:0" /></label>
-      <button type="submit" disabled={saving} className="profile-submit">{saving ? "Creating…" : "Create Product"}</button>
+      <button type="submit" disabled={saving || uploading} className="profile-submit">{saving ? "Creating…" : "Create Product"}</button>
     </form>
   );
 }
