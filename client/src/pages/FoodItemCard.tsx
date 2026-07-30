@@ -11,6 +11,7 @@
  * Decreasing to 0 removes the item from the cart.
  */
 
+import { useState } from "react";
 import type { FoodItem } from "../../../types/index.js";
 import { formatINR } from "../format.js";
 
@@ -62,6 +63,13 @@ export function FoodItemCard({
 }: FoodItemCardProps): JSX.Element {
   const unavailable = item.availableQuantity === 0;
   const inCart = cartQuantity > 0;
+  const hasVariants = item.variants && item.variants.length > 0;
+  const [selectedVariant, setSelectedVariant] = useState<string | undefined>(undefined);
+
+  const variantAddon = hasVariants && selectedVariant
+    ? (item.variants!.find(v => v.name === selectedVariant)?.priceAddon ?? 0)
+    : 0;
+  const displayPrice = item.price + variantAddon;
 
   function handleDecrement(): void {
     if (cartQuantity <= 1) {
@@ -69,6 +77,14 @@ export function FoodItemCard({
     } else {
       onDecrement?.(item.id);
     }
+  }
+
+  function handleAdd(): void {
+    // Pass the item with adjusted price if variant selected
+    const itemToAdd = variantAddon > 0
+      ? { ...item, price: displayPrice }
+      : item;
+    onAddToCart(itemToAdd);
   }
 
   return (
@@ -96,8 +112,25 @@ export function FoodItemCard({
         )}
       </p>
 
+      {hasVariants && (
+        <div className="food-card-variants-select">
+          <select
+            value={selectedVariant ?? ""}
+            onChange={(e) => setSelectedVariant(e.target.value || undefined)}
+            className="food-card-variant-dropdown"
+          >
+            <option value="">Regular</option>
+            {item.variants!.map((v) => (
+              <option key={v.name} value={v.name}>
+                {v.name} {v.priceAddon > 0 ? `(+₹${v.priceAddon})` : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <p className="food-card-price" data-testid="food-card-price">
-        {formatINR(item.price)}
+        {formatINR(displayPrice)}
       </p>
 
       {inCart ? (
@@ -129,7 +162,7 @@ export function FoodItemCard({
           className="food-card-add"
           disabled={unavailable}
           aria-disabled={unavailable}
-          onClick={() => onAddToCart(item)}
+          onClick={handleAdd}
         >
           Add to Cart
         </button>

@@ -1278,3 +1278,27 @@ main {
   line-height: 1.5;
   margin: 0.5rem 0 1rem;
 }
+
+/* ================================================ FOOD CARD VARIANTS */
+.food-card-variants-select {
+  margin: 0.4rem 1.25rem 0.3rem;
+}
+.food-card-variant-dropdown {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1.5px solid var(--iab-border);
+  border-radius: 8px;
+  background: var(--iab-card);
+  color: var(--iab-ink);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color var(--iab-transition);
+}
+.food-card-variant-dropdown:hover { border-color: var(--iab-primary); }
+.food-card-variant-dropdown:focus { border-color: var(--iab-primary); outline: none; box-shadow: 0 0 0 3px rgba(255,107,53,0.1); }
+
+[data-theme="light"] .food-card-variant-dropdown {
+  background: #fff;
+  border-color: #d1d5db;
+}
