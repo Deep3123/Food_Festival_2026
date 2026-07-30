@@ -161,11 +161,10 @@ main {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  width: 2.2rem;
+  height: 2.2rem;
   background: linear-gradient(135deg, var(--iab-primary), var(--iab-primary-dark));
   border-radius: 8px;
-  font-size: 1.1rem;
   box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
 }
 

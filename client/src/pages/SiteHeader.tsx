@@ -42,7 +42,14 @@ export function SiteHeader(): JSX.Element {
 
           <Link to={ROUTES.home} className="site-brand" aria-label="Invest-a-Bite home">
             <span className="site-brand-mark">
-              <span className="site-logo-icon">🍕</span>
+              <span className="site-logo-icon">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 2l1.578 17.824A2 2 0 0 0 6.556 21.5h10.888a2 2 0 0 0 1.978-1.676L21 2" />
+                  <path d="M6 2c0 3 2.5 5 6 5s6-2 6-5" />
+                  <line x1="12" y1="12" x2="12" y2="16" />
+                  <line x1="10" y1="14" x2="14" y2="14" />
+                </svg>
+              </span>
             </span>
             <span className="site-brand-name">
               <span className="site-brand-invest">Invest</span>
@@ -121,7 +128,17 @@ export function SiteHeader(): JSX.Element {
       {/* Mobile sidebar drawer */}
       <aside className={`sidebar ${sidebarOpen ? "sidebar--open" : ""}`} aria-label="Navigation menu">
         <div className="sidebar-header">
-          <span className="sidebar-brand"><span className="site-logo-icon">🍕</span> Invest-a-Bite</span>
+          <span className="sidebar-brand">
+            <span className="site-logo-icon">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 2l1.578 17.824A2 2 0 0 0 6.556 21.5h10.888a2 2 0 0 0 1.978-1.676L21 2" />
+                <path d="M6 2c0 3 2.5 5 6 5s6-2 6-5" />
+                <line x1="12" y1="12" x2="12" y2="16" />
+                <line x1="10" y1="14" x2="14" y2="14" />
+              </svg>
+            </span>
+            {" "}Invest-a-Bite
+          </span>
           <button
             type="button"
             className="sidebar-close"
