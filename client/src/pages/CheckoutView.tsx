@@ -14,7 +14,7 @@ import { ApiClientError, checkout, getOrder, getWallet, getPaymentConfig, sugges
 import type { CheckoutResponse, OrderResponse, CouponResponse, PaymentConfig } from "../api/client.js";
 import { useCart } from "../cart/CartContext.js";
 import { useCustomer } from "../customer/CustomerContext.js";
-import { toCartItems } from "../cart/cart.js";
+import { toCartItems, cartLineTotal } from "../cart/cart.js";
 import { ROUTES } from "../routes.js";
 import { formatINR } from "../format.js";
 import { DEMO_STALL_ID } from "../demo.js";
@@ -53,7 +53,7 @@ function buildQrUrl(upiUrl: string, size = 220): string {
 }
 
 export function CheckoutView(): JSX.Element {
-  const { cart, total, clearCart } = useCart();
+  const { cart, total, clearCart, increment, decrement, removeItem, clampedItemId } = useCart();
   const { customer } = useCustomer();
   const navigate = useNavigate();
   const [state, setState] = useState<CheckoutState>({ status: "idle" });
@@ -279,7 +279,26 @@ export function CheckoutView(): JSX.Element {
   // --- DEFAULT: ORDER SUMMARY ---
   return (
     <main className="checkout">
-      <h1>Checkout</h1>
+      <h1>Cart & Checkout</h1>
+
+      <ul className="cart-lines">
+        {cart.map((line) => (
+          <li key={line.itemId} className="cart-line">
+            <span className="cart-line-name">{line.name}</span>
+            <span className="cart-line-unit-price">{formatINR(line.unitPrice)}</span>
+            <span className="cart-line-quantity-controls">
+              <button type="button" onClick={() => decrement(line.itemId)} disabled={line.quantity <= 1}>−</button>
+              <span className="cart-line-quantity">{line.quantity}</span>
+              <button type="button" onClick={() => increment(line.itemId)}>+</button>
+            </span>
+            <span className="cart-line-total">{formatINR(cartLineTotal(line))}</span>
+            <button type="button" className="cart-line-remove" onClick={() => removeItem(line.itemId)}>Remove</button>
+            {clampedItemId === line.itemId && (
+              <p role="alert" className="cart-line-notice">Only {line.availableQuantity} available.</p>
+            )}
+          </li>
+        ))}
+      </ul>
 
       <div className="checkout-summary">
         <p className="checkout-total" data-testid="checkout-total">

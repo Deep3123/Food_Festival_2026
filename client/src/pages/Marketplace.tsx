@@ -89,8 +89,8 @@ export function Marketplace(): JSX.Element {
             <span className="sticky-cart-count">{cartCount} {cartCount === 1 ? "item" : "items"}</span>
             <span className="sticky-cart-total">{formatINR(total)}</span>
           </div>
-          <Link to={ROUTES.cart} className="sticky-cart-btn">
-            Go to Cart →
+          <Link to={ROUTES.checkout} className="sticky-cart-btn">
+            Checkout →
           </Link>
         </div>
       )}

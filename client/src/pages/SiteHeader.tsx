@@ -96,7 +96,7 @@ export function SiteHeader(): JSX.Element {
               {customer ? customer.name || customer.mobile : "Sign in"}
             </NavLink>
             {!isAdmin && (
-              <Link to={ROUTES.cart} className="site-cart-link" aria-label={`Cart, ${count} items`}>
+              <Link to={ROUTES.checkout} className="site-cart-link" aria-label={`Cart, ${count} items`}>
                 🛒
                 <span className="site-cart-count" data-testid="site-cart-count">
                   {count}
@@ -168,7 +168,7 @@ export function SiteHeader(): JSX.Element {
             </NavLink>
           )}
           {!isAdmin && (
-            <NavLink to={ROUTES.cart} className="sidebar-nav-link" onClick={closeSidebar}>
+            <NavLink to={ROUTES.checkout} className="sidebar-nav-link" onClick={closeSidebar}>
               🛒 Cart ({count})
             </NavLink>
           )}
