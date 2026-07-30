@@ -13,7 +13,7 @@ import { getCustomerOrders } from "../api/client.js";
 import type { OrderResponse } from "../api/client.js";
 import { useCustomer } from "../customer/CustomerContext.js";
 import { usePolling } from "../hooks/usePolling.js";
-import { orderPath, ROUTES } from "../routes.js";
+import { ROUTES } from "../routes.js";
 import { formatINR } from "../format.js";
 
 /** Compute reward points earned from an order total (10% of total, floored). */
@@ -154,23 +154,8 @@ export function OrderHistoryView(): JSX.Element {
                         🪙 +{coins} points
                       </span>
                     )}
-                    {order.spinReward && (
-                      <span className="order-card-spin" title="Spin reward">
-                        🎰 {order.spinReward}
-                      </span>
-                    )}
-                    {!coins && !order.spinReward && (
-                      <span className="order-card-no-reward">—</span>
-                    )}
                   </div>
                 </div>
-
-                <Link
-                  to={orderPath(order.token)}
-                  className="order-card-track-btn"
-                >
-                  Track order →
-                </Link>
               </article>
             );
           })}
