@@ -65,7 +65,7 @@ function seedFoodItems(): FoodItem[] {
     {
       id: "item-mint-mojito",
       name: "Mint Mojito",
-      imageUrl: "https://images.unsplash.com/photo-1551538827-9c037cb4f32a?auto=format&fit=crop&w=600&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=600&q=80",
       description: "Refreshing mint mojito with crushed ice, lime, and fresh mint leaves.",
       rating: 4.6,
       availableQuantity: 80,
@@ -78,7 +78,7 @@ function seedFoodItems(): FoodItem[] {
     {
       id: "item-green-apple-mojito",
       name: "Green Apple Mojito",
-      imageUrl: "https://images.unsplash.com/photo-1556881286-fc6915169721?auto=format&fit=crop&w=600&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1513558161293-cdaf765ed514?auto=format&fit=crop&w=600&q=80",
       description: "Tangy green apple mojito with a burst of fruity freshness and soda.",
       rating: 4.5,
       availableQuantity: 80,
@@ -91,7 +91,7 @@ function seedFoodItems(): FoodItem[] {
     {
       id: "item-jamun-shot",
       name: "Jamun Shot",
-      imageUrl: "https://images.unsplash.com/photo-1546173159-315724a31696?auto=format&fit=crop&w=600&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1600271886742-f049cd451bba?auto=format&fit=crop&w=600&q=80",
       description: "Chilled jamun berry shot — tangy, sweet, and incredibly refreshing.",
       rating: 4.4,
       availableQuantity: 100,
@@ -104,7 +104,7 @@ function seedFoodItems(): FoodItem[] {
     {
       id: "item-kiwi-shot",
       name: "Kiwi Shot",
-      imageUrl: "https://images.unsplash.com/photo-1616684000067-36952fde56ec?auto=format&fit=crop&w=600&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1585059895524-72f2d3abbe18?auto=format&fit=crop&w=600&q=80",
       description: "Fresh kiwi fruit shot bursting with tropical flavour and natural sweetness.",
       rating: 4.5,
       availableQuantity: 100,
@@ -130,7 +130,7 @@ function seedFoodItems(): FoodItem[] {
     {
       id: "item-momos",
       name: "Momos (4 Pcs)",
-      imageUrl: "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?auto=format&fit=crop&w=600&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=600&q=80",
       description: "Steamed dumplings stuffed with a flavourful veggie filling, served with spicy chutney. 4 pieces.",
       rating: 4.8,
       availableQuantity: 60,
@@ -143,7 +143,7 @@ function seedFoodItems(): FoodItem[] {
     {
       id: "item-monaco-chaat",
       name: "Monaco Chaat",
-      imageUrl: "https://images.unsplash.com/photo-1606491956689-2ea866880049?auto=format&fit=crop&w=600&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=600&q=80",
       description: "Crispy monaco biscuits topped with tangy chutneys, onion, sev, and fresh herbs.",
       rating: 4.6,
       availableQuantity: 60,
@@ -157,7 +157,7 @@ function seedFoodItems(): FoodItem[] {
     {
       id: "item-basket-chaat",
       name: "Basket Chaat",
-      imageUrl: "https://images.unsplash.com/photo-1626132647523-66f5bf380027?auto=format&fit=crop&w=600&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?auto=format&fit=crop&w=600&q=80",
       description: "Crispy potato basket loaded with chutneys, yogurt, pomegranate, and crunchy sev.",
       rating: 4.7,
       availableQuantity: 60,
@@ -184,7 +184,7 @@ function seedFoodItems(): FoodItem[] {
     {
       id: "item-meetha-paan",
       name: "Meetha Paan",
-      imageUrl: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=600&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1590080876351-941da357a4e4?auto=format&fit=crop&w=600&q=80",
       description: "Sweet betel leaf loaded with gulkand, tutti-frutti, cherry, and aromatic fennel.",
       rating: 4.8,
       availableQuantity: 80,
