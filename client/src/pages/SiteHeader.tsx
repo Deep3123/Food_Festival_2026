@@ -72,7 +72,7 @@ export function SiteHeader(): JSX.Element {
               Trending
             </NavLink>
             {isAdmin && (
-              <NavLink to={ROUTES.admin} className="site-nav-link">
+              <NavLink to={ROUTES.admin} className="site-nav-link" end>
                 Orders
               </NavLink>
             )}
