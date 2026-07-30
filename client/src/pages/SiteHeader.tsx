@@ -41,7 +41,9 @@ export function SiteHeader(): JSX.Element {
           </button>
 
           <Link to={ROUTES.home} className="site-brand" aria-label="Invest-a-Bite home">
-            <span className="site-brand-mark">🍽</span>
+            <span className="site-brand-mark">
+              <span className="site-logo-icon">🍕</span>
+            </span>
             <span className="site-brand-name">Invest-a-Bite</span>
           </Link>
 
@@ -115,7 +117,7 @@ export function SiteHeader(): JSX.Element {
       {/* Mobile sidebar drawer */}
       <aside className={`sidebar ${sidebarOpen ? "sidebar--open" : ""}`} aria-label="Navigation menu">
         <div className="sidebar-header">
-          <span className="sidebar-brand">🍽 Invest-a-Bite</span>
+          <span className="sidebar-brand"><span className="site-logo-icon">🍕</span> Invest-a-Bite</span>
           <button
             type="button"
             className="sidebar-close"
