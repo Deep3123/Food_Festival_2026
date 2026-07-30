@@ -388,30 +388,53 @@ export function createApp(deps: AppDependencies): Express {
   });
 
   // --- POST /api/orders/:token/advance ------------------------------------
-  //
-  // Advances the order to the next status via the order-status domain.
-  // Advancing an order already at "Happiness Disbursed" is a no-op (it stays).
-  // Unknown tokens yield a 404.
-  //
-  // Validates: Requirements 6.2, 6.3
   app.post(
     "/api/orders/:token/advance",
     (req: Request, res: Response): void => {
       const { token } = req.params;
       const order = store.getOrder(token);
       if (!order) {
-        const errBody: ApiError = {
-          error: "Order not found",
-          code: "ORDER_NOT_FOUND",
-        };
+        const errBody: ApiError = { error: "Order not found", code: "ORDER_NOT_FOUND" };
         res.status(404).json(errBody);
         return;
       }
-
       order.status = nextStatus(order.status);
       store.saveOrder(order);
-
       res.status(200).json(order);
+    }
+  );
+
+  // --- POST /api/orders/:token/cancel -------------------------------------
+  //
+  // Cancels an order. Only orders in "Craving Funded" status can be cancelled.
+  app.post(
+    "/api/orders/:token/cancel",
+    (req: Request, res: Response): void => {
+      const { token } = req.params;
+      const order = store.getOrder(token);
+      if (!order) {
+        const errBody: ApiError = { error: "Order not found", code: "ORDER_NOT_FOUND" };
+        res.status(404).json(errBody);
+        return;
+      }
+      if (order.status !== "Craving Funded") {
+        const errBody: ApiError = { error: "Only pending orders can be cancelled", code: "CANNOT_CANCEL" };
+        res.status(400).json(errBody);
+        return;
+      }
+      // Restore stock
+      for (const cartItem of order.items) {
+        const currentItem = store.getFoodItem(cartItem.itemId);
+        if (currentItem) {
+          store.setAvailableQuantity(cartItem.itemId, currentItem.availableQuantity + cartItem.quantity);
+        }
+      }
+      // Restore reward points if any were deducted
+      // Mark order as cancelled by setting a special status
+      (order as unknown as Record<string, unknown>).cancelled = true;
+      order.status = "Happiness Disbursed"; // terminal state
+      store.saveOrder(order);
+      res.status(200).json({ ...order, cancelled: true });
     }
   );
 

@@ -9,7 +9,7 @@
 
 import { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
-import { advanceOrder, getAdminOrders } from "../api/client.js";
+import { advanceOrder, getAdminOrders, cancelOrder } from "../api/client.js";
 import type { OrderResponse } from "../api/client.js";
 import { usePolling } from "../hooks/usePolling.js";
 import { useCustomer } from "../customer/CustomerContext.js";
@@ -81,14 +81,30 @@ function AdminOrdersPanel(): JSX.Element {
     [refresh]
   );
 
+  const handleReject = useCallback(
+    async (token: string): Promise<void> => {
+      setAdvancingToken(token);
+      setAdvanceError(undefined);
+      try {
+        await cancelOrder(token);
+        refresh();
+      } catch {
+        setAdvanceError("We couldn't reject that order. Please try again.");
+      } finally {
+        setAdvancingToken(null);
+      }
+    },
+    [refresh]
+  );
+
   const orders = data ?? [];
 
-  // Filter orders by tab
-  const newOrders = orders.filter((o) => o.status === "Craving Funded");
+  // Filter orders by tab (exclude cancelled orders)
+  const newOrders = orders.filter((o) => o.status === "Craving Funded" && !(o as unknown as Record<string, unknown>).cancelled);
   const processingOrders = orders.filter(
     (o) => o.status === "Flavor Processing" || o.status === "Taste Ready for Pickup"
   );
-  const completedOrders = orders.filter((o) => o.status === "Happiness Disbursed");
+  const completedOrders = orders.filter((o) => o.status === "Happiness Disbursed" && !(o as unknown as Record<string, unknown>).cancelled);
 
   const displayedOrders =
     activeTab === "new"
@@ -184,19 +200,32 @@ function AdminOrdersPanel(): JSX.Element {
                 </div>
 
                 {!atEnd && (
-                  <button
-                    type="button"
-                    className="admin-advance"
-                    data-testid={`admin-advance-${order.token}`}
-                    onClick={() => void handleAdvance(order.token, order.status === "Craving Funded")}
-                    disabled={busy}
-                  >
-                    {busy
-                      ? "Processing…"
-                      : order.status === "Craving Funded"
-                        ? "✓ Approve Payment"
-                        : "Mark Completed"}
-                  </button>
+                  <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                    <button
+                      type="button"
+                      className="admin-advance"
+                      data-testid={`admin-advance-${order.token}`}
+                      onClick={() => void handleAdvance(order.token, order.status === "Craving Funded")}
+                      disabled={busy}
+                    >
+                      {busy
+                        ? "Processing…"
+                        : order.status === "Craving Funded"
+                          ? "✓ Approve Payment"
+                          : "Mark Completed"}
+                    </button>
+                    {order.status === "Craving Funded" && (
+                      <button
+                        type="button"
+                        className="admin-advance"
+                        style={{ background: "var(--iab-danger)", boxShadow: "0 2px 8px rgba(239,68,68,0.3)" }}
+                        onClick={() => void handleReject(order.token)}
+                        disabled={busy}
+                      >
+                        ✕ Reject
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             );

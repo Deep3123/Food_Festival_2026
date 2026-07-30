@@ -247,6 +247,14 @@ export function advanceOrder(token: string): Promise<OrderResponse> {
   );
 }
 
+/** POST /api/orders/:token/cancel — cancel an order (only pending orders). */
+export function cancelOrder(token: string): Promise<OrderResponse> {
+  return postJson<OrderResponse>(
+    `/orders/${encodeURIComponent(token)}/cancel`,
+    {}
+  );
+}
+
 /** GET /api/metrics — current day's startup metrics. */
 export function getMetrics(): Promise<Metrics> {
   return request<Metrics>("/metrics");

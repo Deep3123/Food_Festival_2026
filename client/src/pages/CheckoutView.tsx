@@ -10,7 +10,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ApiClientError, checkout, getOrder, getWallet, getPaymentConfig, suggestCoupons, applyCoupon, markCouponUsed } from "../api/client.js";
+import { ApiClientError, checkout, getOrder, getWallet, getPaymentConfig, suggestCoupons, applyCoupon, cancelOrder } from "../api/client.js";
 import type { CheckoutResponse, OrderResponse, CouponResponse, PaymentConfig } from "../api/client.js";
 import { useCart } from "../cart/CartContext.js";
 import { useCustomer } from "../customer/CustomerContext.js";
@@ -29,6 +29,8 @@ type CheckoutState =
   | { status: "processing" }
   | { status: "waiting-approval"; token: string; coinsEarned: number; amount: number }
   | { status: "approved"; token: string; coinsEarned: number }
+  | { status: "rejected"; token: string }
+  | { status: "cancelled" }
   | { status: "failed"; message: string };
 
 /** Generate a UPI intent URL */
@@ -132,15 +134,18 @@ export function CheckoutView(): JSX.Element {
     }
   }
 
-  // Poll for admin approval (status change from "Craving Funded")
+  // Poll for admin approval or rejection
   const pollForApproval = useCallback(async (token: string) => {
     try {
       const order: OrderResponse = await getOrder(token);
+      if ((order as unknown as Record<string, unknown>).cancelled) {
+        return "rejected";
+      }
       if (order.status !== "Craving Funded") {
-        return true; // approved!
+        return "approved";
       }
     } catch { /* ignore polling errors */ }
-    return false;
+    return "pending";
   }, []);
 
   useEffect(() => {
@@ -149,15 +154,29 @@ export function CheckoutView(): JSX.Element {
     let cancelled = false;
 
     const interval = setInterval(async () => {
-      const approved = await pollForApproval(token);
-      if (approved && !cancelled) {
+      const result = await pollForApproval(token);
+      if (cancelled) return;
+      if (result === "approved") {
         clearCart();
         setState({ status: "approved", token, coinsEarned });
+      } else if (result === "rejected") {
+        setState({ status: "rejected", token });
       }
-    }, 3000); // poll every 3 seconds
+    }, 3000);
 
     return () => { cancelled = true; clearInterval(interval); };
-  }, [state, pollForApproval]);
+  }, [state, pollForApproval, clearCart]);
+
+  // Cancel order handler
+  async function handleCancelOrder(): Promise<void> {
+    if (state.status !== "waiting-approval") return;
+    try {
+      await cancelOrder(state.token);
+      setState({ status: "cancelled" });
+    } catch {
+      // ignore
+    }
+  }
 
   // Auto-redirect after approval
   useEffect(() => {
@@ -165,6 +184,42 @@ export function CheckoutView(): JSX.Element {
     const timer = setTimeout(() => navigate(ROUTES.home), 4000);
     return () => clearTimeout(timer);
   }, [state.status, navigate]);
+
+  // --- CANCELLED STATE ---
+  if (state.status === "cancelled") {
+    return (
+      <main className="checkout">
+        <div className="checkout-success-card">
+          <div className="checkout-success-icon">🚫</div>
+          <h1>Order Cancelled</h1>
+          <p style={{ color: "var(--iab-ink-secondary)" }}>Your order has been cancelled. No payment was charged.</p>
+          <div className="checkout-success-actions">
+            <button type="button" onClick={() => navigate(ROUTES.marketplace)}>
+              Back to Menu
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // --- REJECTED STATE ---
+  if (state.status === "rejected") {
+    return (
+      <main className="checkout">
+        <div className="checkout-success-card">
+          <div className="checkout-success-icon">❌</div>
+          <h1>Order Rejected</h1>
+          <p style={{ color: "var(--iab-danger)" }}>Your order was rejected by the admin. Please contact the stall for more details.</p>
+          <div className="checkout-success-actions">
+            <button type="button" onClick={() => navigate(ROUTES.marketplace)}>
+              Back to Menu
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   // --- APPROVED STATE ---
   if (state.status === "approved") {
@@ -240,6 +295,9 @@ export function CheckoutView(): JSX.Element {
             <div className="upi-waiting-spinner"></div>
             <p className="upi-waiting-text">Waiting for payment verification by admin…</p>
             <p className="upi-waiting-hint">Pay using the QR code or app links above. The admin will verify your payment.</p>
+            <button type="button" className="upi-cancel-btn" onClick={() => void handleCancelOrder()} style={{ marginTop: "1rem" }}>
+              Cancel Order
+            </button>
           </div>
         </div>
       </main>
