@@ -322,9 +322,6 @@ export function createApp(deps: AppDependencies): Express {
       }
 
       const coinsEarned = coinsForOrder(total);
-      const wallet = store.getWallet(customerId);
-      wallet.foodCoins += coinsEarned;
-      store.saveWallet(wallet);
 
       // Auto-create a minimal customer for a checkout by an unregistered mobile
       // so the identity exists for later lookups (checkout does not require a
@@ -398,6 +395,15 @@ export function createApp(deps: AppDependencies): Express {
         res.status(404).json(errBody);
         return;
       }
+
+      // Credit reward points when admin approves (first advance from "Craving Funded")
+      if (order.status === "Craving Funded") {
+        const coins = coinsForOrder(order.total);
+        const wallet = store.getWallet(order.customerId);
+        wallet.foodCoins += coins;
+        store.saveWallet(wallet);
+      }
+
       order.status = nextStatus(order.status);
       store.saveOrder(order);
       res.status(200).json(order);
