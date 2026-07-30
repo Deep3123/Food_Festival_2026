@@ -64,12 +64,18 @@ export function FoodItemCard({
   const unavailable = item.availableQuantity === 0;
   const inCart = cartQuantity > 0;
   const hasVariants = item.variants && item.variants.length > 0;
-  const [selectedVariant, setSelectedVariant] = useState<string | undefined>(undefined);
+  const [selectedVariants, setSelectedVariants] = useState<string[]>([]);
 
-  const variantAddon = hasVariants && selectedVariant
-    ? (item.variants!.find(v => v.name === selectedVariant)?.priceAddon ?? 0)
+  const variantAddon = hasVariants
+    ? item.variants!.filter(v => selectedVariants.includes(v.name)).reduce((sum, v) => sum + v.priceAddon, 0)
     : 0;
   const displayPrice = item.price + variantAddon;
+
+  function toggleVariant(name: string): void {
+    setSelectedVariants(prev =>
+      prev.includes(name) ? prev.filter(n => n !== name) : [...prev, name]
+    );
+  }
 
   function handleDecrement(): void {
     if (cartQuantity <= 1) {
@@ -80,7 +86,6 @@ export function FoodItemCard({
   }
 
   function handleAdd(): void {
-    // Pass the item with adjusted price if variant selected
     const itemToAdd = variantAddon > 0
       ? { ...item, price: displayPrice }
       : item;
@@ -113,19 +118,17 @@ export function FoodItemCard({
       </p>
 
       {hasVariants && (
-        <div className="food-card-variants-select">
-          <select
-            value={selectedVariant ?? ""}
-            onChange={(e) => setSelectedVariant(e.target.value || undefined)}
-            className="food-card-variant-dropdown"
-          >
-            <option value="">Regular</option>
-            {item.variants!.map((v) => (
-              <option key={v.name} value={v.name}>
-                {v.name} {v.priceAddon > 0 ? `(+₹${v.priceAddon})` : ""}
-              </option>
-            ))}
-          </select>
+        <div className="food-card-variants-check">
+          {item.variants!.map((v) => (
+            <label key={v.name} className="food-card-variant-option">
+              <input
+                type="checkbox"
+                checked={selectedVariants.includes(v.name)}
+                onChange={() => toggleVariant(v.name)}
+              />
+              <span>{v.name}{v.priceAddon > 0 ? ` (+₹${v.priceAddon})` : ""}</span>
+            </label>
+          ))}
         </div>
       )}
 
