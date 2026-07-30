@@ -43,11 +43,9 @@ export function SiteHeader(): JSX.Element {
           <Link to={ROUTES.home} className="site-brand" aria-label="Invest-a-Bite home">
             <span className="site-brand-mark">
               <span className="site-logo-icon">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 2l1.578 17.824A2 2 0 0 0 6.556 21.5h10.888a2 2 0 0 0 1.978-1.676L21 2" />
-                  <path d="M6 2c0 3 2.5 5 6 5s6-2 6-5" />
-                  <line x1="12" y1="12" x2="12" y2="16" />
-                  <line x1="10" y1="14" x2="14" y2="14" />
+                <svg viewBox="0 0 32 32" width="18" height="18" fill="none">
+                  <path d="M16 4 L28 10 L28 14 C28 22 22 28 16 30 C10 28 4 22 4 14 L4 10 Z" fill="#fff" opacity="0.9"/>
+                  <path d="M12 15 L15 18 L21 12" stroke="var(--iab-primary-dark)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
                 </svg>
               </span>
             </span>
@@ -130,11 +128,9 @@ export function SiteHeader(): JSX.Element {
         <div className="sidebar-header">
           <span className="sidebar-brand">
             <span className="site-logo-icon">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 2l1.578 17.824A2 2 0 0 0 6.556 21.5h10.888a2 2 0 0 0 1.978-1.676L21 2" />
-                <path d="M6 2c0 3 2.5 5 6 5s6-2 6-5" />
-                <line x1="12" y1="12" x2="12" y2="16" />
-                <line x1="10" y1="14" x2="14" y2="14" />
+              <svg viewBox="0 0 32 32" width="14" height="14" fill="none">
+                <path d="M16 4 L28 10 L28 14 C28 22 22 28 16 30 C10 28 4 22 4 14 L4 10 Z" fill="#fff" opacity="0.9"/>
+                <path d="M12 15 L15 18 L21 12" stroke="var(--iab-primary-dark)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
               </svg>
             </span>
             {" "}Invest-a-Bite
