@@ -474,6 +474,7 @@ export function createApp(deps: AppDependencies): Express {
   //
   // Lists all orders for a seller/admin, most-recent first (by createdAt).
   // Optionally filterable to a single stall via `?stallId=`.
+  // Enriches each order with the customer name for admin display.
   app.get("/api/admin/orders", (req: Request, res: Response): void => {
     const stallId =
       typeof req.query.stallId === "string" ? req.query.stallId : undefined;
@@ -482,11 +483,15 @@ export function createApp(deps: AppDependencies): Express {
     if (stallId) {
       orders = orders.filter((o) => o.stallId === stallId);
     }
-    // Most-recent first. createdAt is an ISO timestamp so lexicographic
-    // descending order is chronological descending order.
     orders.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
-    res.status(200).json(orders);
+    // Enrich with customer name
+    const enriched = orders.map((o) => {
+      const customer = store.getCustomer(o.customerId);
+      return { ...o, customerName: customer?.name || "" };
+    });
+
+    res.status(200).json(enriched);
   });
 
   // --- GET /api/admin/orders/:token ---------------------------------------
