@@ -16,6 +16,14 @@ export function HomePage(): JSX.Element {
   return (
     <main className="home">
       <section className="hero">
+        <div className="hero-food-decor">
+          <span className="hero-food hero-food-1">🍜</span>
+          <span className="hero-food hero-food-2">🥟</span>
+          <span className="hero-food hero-food-3">🧃</span>
+          <span className="hero-food hero-food-4">🍧</span>
+          <span className="hero-food hero-food-5">🌮</span>
+          <span className="hero-food hero-food-6">☕</span>
+        </div>
         <div className="hero-badge">🚀 OPL FinTech Food Fest 2026</div>
         <h1>Welcome to Invest-a-Bite</h1>
         <p className="hero-subheading">Where food meets fintech innovation.</p>
