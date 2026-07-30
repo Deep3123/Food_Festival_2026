@@ -169,6 +169,26 @@ main {
   box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
 }
 
+.site-brand-name {
+  display: inline-flex;
+  align-items: baseline;
+}
+.site-brand-invest {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.site-brand-dash {
+  font-weight: 400;
+  font-size: 0.8em;
+  opacity: 0.5;
+  margin: 0 1px;
+}
+.site-brand-bite {
+  color: var(--iab-primary);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
 .site-nav { display: flex; gap: 0.25rem; flex: 1; }
 .site-nav-link {
   color: var(--iab-ink-secondary);

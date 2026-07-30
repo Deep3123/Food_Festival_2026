@@ -44,7 +44,11 @@ export function SiteHeader(): JSX.Element {
             <span className="site-brand-mark">
               <span className="site-logo-icon">🍕</span>
             </span>
-            <span className="site-brand-name">Invest-a-Bite</span>
+            <span className="site-brand-name">
+              <span className="site-brand-invest">Invest</span>
+              <span className="site-brand-dash">-a-</span>
+              <span className="site-brand-bite">Bite</span>
+            </span>
           </Link>
 
           {/* Desktop nav — hidden on mobile */}
