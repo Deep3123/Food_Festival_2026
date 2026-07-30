@@ -487,7 +487,8 @@ export function createApp(deps: AppDependencies): Express {
 
     // Enrich with customer name
     const enriched = orders.map((o) => {
-      const customer = store.getCustomer(o.customerId);
+      const normalized = isValidMobile(o.customerId) ? normalizeMobile(o.customerId) : o.customerId;
+      const customer = store.getCustomer(normalized);
       return { ...o, customerName: customer?.name || "" };
     });
 

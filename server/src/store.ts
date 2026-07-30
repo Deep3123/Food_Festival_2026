@@ -371,6 +371,7 @@ export class Store {
   /** Insert or replace a food item. */
   upsertFoodItem(item: FoodItem): void {
     this.foodItems.set(item.id, deepClone(item));
+    this.persist();
   }
 
   /**
