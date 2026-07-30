@@ -18,8 +18,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-/** Default polling interval in milliseconds (~1 second). */
-export const DEFAULT_POLL_INTERVAL_MS = 1000;
+/** Default polling interval in milliseconds. */
+export const DEFAULT_POLL_INTERVAL_MS = 500;
 
 export interface UsePollingOptions {
   /** Interval between polls in milliseconds. Defaults to 3000ms. */
