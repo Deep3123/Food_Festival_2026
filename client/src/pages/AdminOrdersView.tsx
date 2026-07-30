@@ -7,9 +7,9 @@
  *   - Completed: status "Happiness Disbursed"
  */
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { advanceOrder, getAdminOrders, cancelOrder } from "../api/client.js";
+import { advanceOrder, getAdminOrders, cancelOrder, getCustomer } from "../api/client.js";
 import type { OrderResponse } from "../api/client.js";
 import { usePolling } from "../hooks/usePolling.js";
 import { useCustomer } from "../customer/CustomerContext.js";
@@ -50,10 +50,22 @@ export function AdminOrdersView(): JSX.Element {
 
 function AdminOrdersPanel(): JSX.Element {
   const [activeTab, setActiveTab] = useState<AdminTab>("new");
+  const [customerNames, setCustomerNames] = useState<Record<string, string>>({});
 
   const fetchOrders = useCallback(() => getAdminOrders(), []);
   const { data, error, loading, refresh } =
     usePolling<OrderResponse[]>(fetchOrders);
+
+  // Fetch customer names for orders
+  useEffect(() => {
+    if (!data) return;
+    const unknownMobiles = [...new Set(data.map(o => o.customerId))].filter(m => !customerNames[m]);
+    unknownMobiles.forEach(mobile => {
+      getCustomer(mobile).then(c => {
+        if (c.name) setCustomerNames(prev => ({ ...prev, [mobile]: c.name }));
+      }).catch(() => {});
+    });
+  }, [data]);
 
   const [advancingToken, setAdvancingToken] = useState<string | null>(null);
   const [advanceError, setAdvanceError] = useState<string | undefined>(undefined);
@@ -180,7 +192,7 @@ function AdminOrdersPanel(): JSX.Element {
                 </div>
 
                 <div className="admin-order-card-customer">
-                  👤 {order.customerId}
+                  👤 {customerNames[order.customerId] ? `${customerNames[order.customerId]} (${order.customerId})` : order.customerId}
                 </div>
 
                 <div className="admin-order-card-items">
