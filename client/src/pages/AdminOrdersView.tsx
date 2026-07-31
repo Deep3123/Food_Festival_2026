@@ -7,7 +7,7 @@
  *   - Completed: status "Happiness Disbursed"
  */
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { advanceOrder, getAdminOrders, cancelOrder } from "../api/client.js";
 import type { OrderResponse } from "../api/client.js";
@@ -50,10 +50,34 @@ export function AdminOrdersView(): JSX.Element {
 
 function AdminOrdersPanel(): JSX.Element {
   const [activeTab, setActiveTab] = useState<AdminTab>("new");
+  const prevNewCountRef = useRef<number>(0);
 
   const fetchOrders = useCallback(() => getAdminOrders(), []);
   const { data, error, loading, refresh } =
     usePolling<OrderResponse[]>(fetchOrders);
+
+  // Sound + visual alert when new orders arrive
+  useEffect(() => {
+    if (!data) return;
+    const newOrders = data.filter((o) => o.status === "Craving Funded" && !(o as unknown as Record<string, unknown>).cancelled);
+    const newCount = newOrders.length;
+    if (newCount > prevNewCountRef.current && prevNewCountRef.current !== 0) {
+      // Play notification sound
+      try {
+        const audio = new Audio("data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2Onp+ZjHxwY2BufreOj39yZV1jcIaYnpyRg3VpYWNxhZedm5OGd2plZnGGlpybk4V3amZncoaXnJuThXdqZmdyhZacm5KFd2pmZ3KFlpybkoV3amZncoWWnJuShXdqZmdyhZacm5KFd2pmZw==");
+        audio.volume = 0.7;
+        audio.play().catch(() => {});
+      } catch { /* ignore */ }
+
+      // Show browser notification if permitted
+      if (Notification.permission === "granted") {
+        new Notification("🔔 New Order!", { body: `You have ${newCount} pending order${newCount > 1 ? "s" : ""} to approve.` });
+      } else if (Notification.permission === "default") {
+        Notification.requestPermission();
+      }
+    }
+    prevNewCountRef.current = newCount;
+  }, [data]);
 
   const [advancingToken, setAdvancingToken] = useState<string | null>(null);
   const [advanceError, setAdvanceError] = useState<string | undefined>(undefined);
@@ -115,6 +139,9 @@ function AdminOrdersPanel(): JSX.Element {
     <main className="admin">
       <header className="admin-header">
         <h1>Order Management</h1>
+        {newOrders.length > 0 && (
+          <p className="admin-new-order-alert">🔔 {newOrders.length} new order{newOrders.length > 1 ? "s" : ""} waiting for approval</p>
+        )}
       </header>
 
       {/* Sub-tabs */}

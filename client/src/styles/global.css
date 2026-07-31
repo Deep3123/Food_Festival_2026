@@ -1392,3 +1392,23 @@ main {
   color: var(--iab-primary);
   font-weight: 600;
 }
+
+/* ================================================ ADMIN ORDER ALERT */
+.admin-new-order-alert {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255, 107, 53, 0.1);
+  border: 1px solid rgba(255, 107, 53, 0.3);
+  color: var(--iab-primary);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  animation: pulseAlert 2s ease-in-out infinite;
+}
+@keyframes pulseAlert {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
